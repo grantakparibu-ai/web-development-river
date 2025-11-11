@@ -1,0 +1,7 @@
+header {
+  background-color: aqua;
+  padding: 26px;
+  margin: 20px;
+  display: flex;
+  justify-content: space-between;
+}

@@ -1,0 +1,8 @@
+@import "_variables.css";
+@import "_header.css";
+
+body {
+  color: var(--primary-color);
+  font-family: var(--font-family);
+  font-size: var(--font-size-base);
+}
