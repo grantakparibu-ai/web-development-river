@@ -1,7 +1,25 @@
 header {
-  background-color: aqua;
+  background-color: white;
   padding: 26px;
   margin: 20px;
+  border-bottom: 2px solid #ccc;
   display: flex;
   justify-content: space-between;
+}
+
+.header__nav {
+  list-style: none;
+  display: flex;
+  gap: 15px;
+  margin: 0;
+  padding: 0;
+}
+
+.rettangolo {
+  background-color: black;
+  color: white;
+  padding: 20px;
+  width: 300px;
+  height: auto;
+  border-radius: 5px;
 }
