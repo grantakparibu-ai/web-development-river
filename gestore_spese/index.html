@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="it">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Gestore spese</title>
+    <link rel="stylesheet" href="styles.css" />
+    <script src="indexDOM.js"></script>
+  </head>
+  <body>
+    <main>
+      <div class="input-card">
+        <h2>Le mie spese oggi</h2>
+        <input
+          type="text"
+          class="text_input"
+          placeholder="Inserisci descrizione spesa"
+        />
+        <div class="input-euro">
+          <span class="euro-simbolo">€</span>
+          <input
+            type="number"
+            class="importo"
+            id="importo"
+            step="0.01"
+            min="0"
+            placeholder="0,00"
+          />
+        </div>
+        <div class="div_errore"></div>
+      </div>
+
+      <div class="risultati-card">
+        <button class="btn_aggiungi">Aggiungi spesa</button>
+        <nav class="risultati">
+          <ul>
+            <li>sdfsdf</li>
+          </ul>
+        </nav>
+        <div class="totale-spese">€ 0,00</div>
+      </div>
+    </main>
+  </body>
+</html>

@@ -1,0 +1,127 @@
+<!doctype html>
+<html lang="it">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Manipolatore di Box</title>
+    <style>
+      body {
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        padding-top: 50px;
+        background-color: #f0f2f5;
+      }
+
+      /* Pannello Comandi */
+      .controls {
+        background: white;
+        padding: 20px;
+        border-radius: 8px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        margin-bottom: 30px;
+        display: flex;
+        gap: 10px;
+        align-items: center;
+        flex-wrap: wrap;
+        justify-content: center;
+      }
+
+      input {
+        padding: 8px;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+      }
+
+      button {
+        padding: 8px 15px;
+        cursor: pointer;
+        border: none;
+        border-radius: 4px;
+        background-color: #28a745;
+        color: white;
+        font-weight: bold;
+      }
+
+      button:hover {
+        opacity: 0.9;
+      }
+
+      #btn-cerchio {
+        background-color: #17a2b8;
+      }
+
+      /* Area di Lavoro: Il Quadrato */
+      #box {
+        width: 100px;
+        height: 100px;
+        border: 2px solid black;
+        background-color: gray;
+        transition: all 0.3s ease; /* Rende i cambiamenti fluidi */
+      }
+
+      .error-msg {
+        color: red;
+        font-size: 0.9rem;
+        margin-top: 5px;
+        display: block;
+        width: 100%;
+        text-align: center;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="controls">
+      <input type="text" id="inputColore" placeholder="Colore (es. red)" />
+      <input type="number" id="inputLarghezza" placeholder="Larghezza (px)" />
+      <button onclick="applicaModifiche()">Applica Modifiche</button>
+      <button id="btn-cerchio" onclick="toggleCerchio()">Rendi Cerchio</button>
+      <span id="errore" class="error-msg"></span>
+    </div>
+
+    <div id="box"></div>
+
+    <script>
+      const box = document.getElementById("box");
+      const inputColore = document.getElementById("inputColore");
+      const inputLarghezza = document.getElementById("inputLarghezza");
+      const errore = document.getElementById("errore");
+
+      function applicaModifiche() {
+        const colore = inputColore.value.trim();
+        const larghezza = parseInt(inputLarghezza.value);
+
+        // Reset messaggio errore
+        errore.innerText = "";
+
+        // Validazione Larghezza
+        if (larghezza > 500) {
+          errore.innerText = "Troppo grande! Massimo 500px";
+          return; // Esce dalla funzione senza applicare nulla
+        }
+
+        // Applicazione Colore (se non vuoto)
+        if (colore !== "") {
+          box.style.backgroundColor = colore;
+        }
+
+        // Applicazione Larghezza (se è un numero valido)
+        if (!isNaN(larghezza)) {
+          box.style.width = larghezza + "px";
+        }
+      }
+
+      function toggleCerchio() {
+        // Se il raggio è già 50%, lo riporta a 0 (quadrato), altrimenti lo mette a 50%
+        if (box.style.borderRadius === "50%") {
+          box.style.borderRadius = "0%";
+          document.getElementById("btn-cerchio").innerText = "Rendi Cerchio";
+        } else {
+          box.style.borderRadius = "50%";
+          document.getElementById("btn-cerchio").innerText = "Rendi Quadrato";
+        }
+      }
+    </script>
+  </body>
+</html>

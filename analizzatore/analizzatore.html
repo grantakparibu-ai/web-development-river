@@ -1,0 +1,170 @@
+<!doctype html>
+<html lang="it">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Analizzatore Interattivo</title>
+    <style>
+      /* Stile Base e Centratura */
+      body {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+        margin: 0;
+        background-color: #f0f2f5;
+        font-family: "Segoe UI", sans-serif;
+      }
+
+      .card {
+        background: white;
+        padding: 2rem;
+        border-radius: 15px;
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+        text-align: center;
+        width: 400px;
+      }
+
+      /* Stile Textarea con bordo */
+      textarea {
+        width: 100%;
+        height: 120px;
+        margin: 15px 0;
+        border: 2px solid #ccc;
+        border-radius: 8px;
+        padding: 12px;
+        box-sizing: border-box;
+        font-size: 16px;
+        outline: none;
+        transition: all 0.3s ease;
+      }
+
+      /* Classi CSS Richieste */
+      .normale {
+        color: black;
+      }
+      .attenzione {
+        color: orange;
+      }
+      .limite-superato {
+        color: red;
+        font-weight: bold;
+      }
+
+      /* Nuovi stili per la parola "Caratteri" */
+      .verde {
+        color: green;
+      }
+      .rosso-testo {
+        color: red;
+      }
+
+      /* Stile dinamico per il testo dentro la textarea al superamento dei 20 */
+      .textarea-superato {
+        color: red !important;
+        font-style: italic !important;
+        text-decoration: line-through !important;
+      }
+
+      .btn-group {
+        display: flex;
+        gap: 10px;
+        justify-content: center;
+        margin-top: 10px;
+      }
+
+      button {
+        padding: 10px 20px;
+        cursor: pointer;
+        border-radius: 5px;
+        border: none;
+        background-color: #007bff;
+        color: white;
+        font-weight: bold;
+      }
+
+      button.reset-btn {
+        background-color: #dc3545;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="card">
+      <h2>Analizzatore Testo</h2>
+
+      <textarea
+        id="areaTesto"
+        oninput="gestisciInterattivita()"
+        placeholder="Inizia a scrivere..."
+      ></textarea>
+
+      <p id="paragrafoContatore">
+        <span id="etichettaCaratteri" class="verde">Caratteri:</span>
+        <span id="numeroConteggio" class="normale">0</span>
+      </p>
+
+      <div class="btn-group">
+        <button onclick="analizzaPulsante()">Analizza Testo</button>
+        <button class="reset-btn" onclick="resetTutto()">Cancella</button>
+      </div>
+    </div>
+
+    <script>
+      const areaTesto = document.getElementById("areaTesto");
+      const numeroConteggio = document.getElementById("numeroConteggio");
+      const etichettaCaratteri = document.getElementById("etichettaCaratteri");
+
+      // Funzione che gira "mentre scrivi"
+      function gestisciInterattivita() {
+        const lunghezza = areaTesto.value.length;
+
+        // 1. Aggiorna il numero
+        numeroConteggio.innerText = lunghezza;
+
+        // 2. Controllo Interattivo (Sopra/Sotto i 20 caratteri)
+        if (lunghezza > 20) {
+          // Modifica stile textarea
+          areaTesto.classList.add("textarea-superato");
+          // Modifica parola "Caratteri"
+          etichettaCaratteri.className = "rosso-testo";
+        } else {
+          // Ritorna normale
+          areaTesto.classList.remove("textarea-superato");
+          etichettaCaratteri.className = "verde";
+        }
+
+        // 3. Logica colori numero (come da punto 4 precedente)
+        aggiornaColoreNumero(lunghezza);
+      }
+
+      function aggiornaColoreNumero(lunghezza) {
+        if (lunghezza <= 10) {
+          numeroConteggio.className = "normale";
+        } else if (lunghezza <= 20) {
+          numeroConteggio.className = "attenzione";
+        } else {
+          numeroConteggio.className = "limite-superato";
+        }
+      }
+
+      // Funzione per il pulsante "Analizza" (come richiesto al punto 3)
+      function analizzaPulsante() {
+        const lunghezza = areaTesto.value.length;
+        if (lunghezza > 20) {
+          alert("Messaggio troppo lungo!");
+        } else {
+          alert("Lunghezza testo: " + lunghezza);
+        }
+      }
+
+      // Funzione Reset (Punto 5)
+      function resetTutto() {
+        areaTesto.value = "";
+        areaTesto.classList.remove("textarea-superato");
+        numeroConteggio.innerText = "0";
+        numeroConteggio.className = "normale";
+        etichettaCaratteri.className = "verde";
+      }
+    </script>
+  </body>
+</html>

@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Todo List Minimale</title>
+    <style>
+        /* --- STEP 2: STILE E ORDINE VISIVO --- */
+        body {
+            font-family: sans-serif;
+            background-color: #f4f7f6;
+            display: flex;
+            justify-content: center;
+            padding-top: 50px;
+        }
+
+        .card {
+            background: white;
+            padding: 2rem;
+            border-radius: 12px; /* Bordo arrotondato */
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1); /* Leggera ombra */
+            width: 100%;
+            max-width: 400px;
+        }
+
+        .input-group {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+
+        input {
+            flex-grow: 1;
+            padding: 8px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+
+        button#add-btn {
+            background-color: #2ecc71;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        /* Messaggi di errore */
+        .error-message {
+            color: #e74c3c;
+            font-size: 0.9rem;
+            min-height: 1.2rem;
+            margin-bottom: 10px;
+        }
+
+        /* Lista dei task con Flexbox */
+        ul {
+            list-style: none;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 10px; /* Spaziatura verticale regolare */
+        }
+
+        li {
+            background: #fafafa;
+            padding: 10px;
+            border: 1px solid #eee;
+            border-radius: 6px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .remove-btn {
+            background-color: #e74c3c;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="card">
+        <h2>Le mie attività</h2>
+        
+        <div class="input-group">
+            <input type="text" id="task-input" placeholder="Cosa devi fare?">
+            <button id="add-btn">Aggiungi task</button>
+        </div>
+
+        <div id="error-container" class="error-message"></div>
+
+        <ul id="task-list"></ul>
+    </div>
+
+    <script>
+        // --- STEP 1: LOGICA JAVASCRIPT ---
+        const input = document.getElementById('task-input');
+        const addBtn = document.getElementById('add-btn');
+        const taskList = document.getElementById('task-list');
+        const errorContainer = document.getElementById('error-container');
+
+        addBtn.addEventListener('click', () => {
+            const taskText = input.value.trim();
+
+            // Reset errore
+            errorContainer.textContent = "";
+
+            // Validazione
+            if (taskText === "") {
+                errorContainer.textContent = "Per favore, inserisci un task!";
+                return;
+            }
+
+            // Creazione elementi con createElement
+            const li = document.createElement('li');
+            const span = document.createElement('span');
+            span.textContent = taskText;
+
+            const removeBtn = document.createElement('button');
+            removeBtn.textContent = "Rimuovi";
+            removeBtn.classList.add('remove-btn');
+
+            // Logica per rimuovere il task
+            removeBtn.addEventListener('click', () => {
+                li.remove(); // Uso di remove() per eliminare l'elemento
+            });
+
+            // Assemblaggio e aggiunta al DOM
+            li.appendChild(span);
+            li.appendChild(removeBtn);
+            taskList.appendChild(li);
+
+            // Pulizia input
+            input.value = "";
+            input.focus();
+        });
+    </script>
+</body>
+</html>

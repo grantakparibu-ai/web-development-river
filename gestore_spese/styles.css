@@ -1,0 +1,188 @@
+/* Reset */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+h2 {
+  font-size: 28px;
+  font-weight: 700;
+  background: linear-gradient(135deg, #28a745, #20c997);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  text-align: center;
+  margin-bottom: 25px;
+  letter-spacing: 0.5px;
+  text-shadow: 0 2px 4px rgba(102, 126, 234, 0.3);
+}
+
+/* Base */
+body {
+  font-family: Arial, sans-serif;
+  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+  min-height: 100vh;
+  padding: 20px;
+  max-width: 700px;
+  margin: 0 auto;
+}
+
+/* Card principale: bordo arrotondato + ombra */
+.input-card,
+.risultati-card {
+  background: white;
+  padding: 30px;
+  border-radius: 20px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+  margin-bottom: 20px;
+}
+
+/* Input */
+.text_input,
+.importo {
+  width: 100%;
+  padding: 15px 15px 15px 45px;
+  border: 2px solid #ddd;
+  border-radius: 8px;
+  font-size: 16px;
+  margin-bottom: 15px;
+}
+
+.input-euro {
+  position: relative;
+  margin-bottom: 20px;
+}
+
+.euro-simbolo {
+  position: absolute;
+  left: 15px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #666;
+  font-weight: bold;
+}
+
+/* Bottone aggiungi */
+.btn_aggiungi {
+  background: linear-gradient(135deg, #28a745, #20c997);
+  color: white;
+  border: none;
+  padding: 18px 30px;
+  border-radius: 12px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  width: 100%;
+  transition: all 0.3s;
+}
+
+.btn_aggiungi:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(40, 167, 69, 0.3);
+}
+
+/* Lista: spaziatura verticale */
+.risultati ul {
+  list-style: none;
+  padding: 0;
+  max-height: 400px;
+  overflow-y: auto;
+}
+
+.risultati li {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 15px;
+  margin-bottom: 12px; /* Spaziatura verticale */
+  background: #f8f9fa;
+  border-radius: 8px;
+  border-left: 4px solid #667eea;
+}
+
+/* Classe errore: testo rosso */
+.errore {
+  color: #e74c3c !important;
+  font-weight: 500;
+  background: #ffeaea;
+  padding: 12px;
+  border-radius: 8px;
+  border-left: 4px solid #e74c3c;
+  margin: 10px 0;
+}
+
+/* Classe spesa-alta */
+.spesa-alta {
+  background: #fff3cd !important;
+  border: 2px solid #ffc107 !important;
+  box-shadow: 0 4px 12px rgba(255, 193, 7, 0.3);
+}
+
+/* Bottone rimozione */
+.btn-rimuovi {
+  background: #e74c3c;
+  color: white;
+  border: none;
+  border-radius: 50%;
+  width: 32px;
+  height: 32px;
+  cursor: pointer;
+  font-weight: bold;
+  font-size: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.2s;
+}
+
+.btn-rimuovi:hover {
+  background: #c0392b;
+}
+
+/* Totale spese */
+.totale-spese {
+  font-size: 28px;
+  font-weight: bold;
+  color: #28a745;
+  text-align: center;
+  padding: 25px;
+  background: #d4edda;
+  border: 3px solid #28a745;
+  border-radius: 16px;
+  margin-top: 20px;
+}
+
+/* Totale alto >100€ */
+.totale-alto {
+  background: #ffeaa7 !important;
+  border-color: #fdcb6e !important;
+  color: #d63031 !important;
+  animation: pulse 1.5s infinite;
+}
+
+@keyframes pulse {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.03);
+  }
+}
+
+/* Responsive */
+@media (max-width: 600px) {
+  body {
+    padding: 10px;
+  }
+  .input-card,
+  .risultati-card {
+    padding: 20px;
+  }
+  .risultati li {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+}
