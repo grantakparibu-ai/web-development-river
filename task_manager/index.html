@@ -1,28 +1,105 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="it">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Todo List Minimale</title>
-    <style>
-        /* --- STEP 2: STILE E ORDINE VISIVO --- */
-
-</head>
-<body>
-
-    <div class="card">
-        <h2>Le mie attività</h2>
-        
-        <div class="input-group">
-            <input type="text" id="task-input" placeholder="Cosa devi fare?">
-            <button id="add-btn">Aggiungi task</button>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Task Manager</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=DM+Mono:wght@400;500&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <div class="app-wrapper">
+      <div class="card">
+        <!-- ===== INTESTAZIONE ===== -->
+        <div class="card-header">
+          <div class="header-icon">✦</div>
+          <h1>Le mie attività</h1>
+          <!--
+          taskCount: aggiornato da JS leggendo tasks.length nell'array,
+          NON contando i <li> del DOM. Fonte di verità = i dati.
+        -->
+          <p id="taskCount" class="task-count">0 task</p>
         </div>
 
-        <div id="error-container" class="error-message"></div>
+        <!-- ===== FORM DI INPUT ===== -->
+        <div class="input-section">
+          <div class="input-row">
+            <input
+              type="text"
+              id="taskInput"
+              class="input-text"
+              placeholder="Nome del task..."
+              autocomplete="off"
+            />
+            <input type="date" id="dateInput" class="input-date" />
+          </div>
+          <button id="addBtn" class="btn btn-primary">
+            <span class="btn-icon">+</span>
+            Aggiungi task
+          </button>
+        </div>
 
-        <ul id="task-list"></ul>
+        <!-- Contenitore errori (popolato da JS) -->
+        <div id="errorContainer" class="error-container"></div>
+
+        <!-- ===== BARRA CONTROLLI ===== -->
+        <div class="controls-bar hidden" id="controlsBar">
+          <!--
+          Filtro e ordinamento: visibili solo in vista Lista.
+          JS aggiunge/rimuove la classe .hidden su questo div
+          quando si cambia layout.
+        -->
+          <div class="controls-left" id="listControls">
+            <div class="controls-group">
+              <label for="filterSelect" class="controls-label">Mostra</label>
+              <select id="filterSelect" class="controls-select">
+                <option value="all">Tutti</option>
+                <option value="todo">Da fare</option>
+                <option value="doing">In corso</option>
+                <option value="done">Completati</option>
+              </select>
+            </div>
+            <div class="controls-group">
+              <label for="sortSelect" class="controls-label">Ordina</label>
+              <select id="sortSelect" class="controls-select">
+                <option value="none">—</option>
+                <option value="date">Per data</option>
+                <option value="status">Per stato</option>
+              </select>
+            </div>
+          </div>
+
+          <!--
+          Layout Switcher: i due pulsanti NON toccano i dati.
+          Cambiano solo la variabile currentLayout e rilanciano
+          render(), che legge gli stessi dati e li mostra diversamente.
+        -->
+          <div class="layout-switcher">
+            <button id="btnList" class="btn-layout active" title="Vista Lista">
+              ☰ Lista
+            </button>
+            <button id="btnKanban" class="btn-layout" title="Vista Kanban">
+              ⊞ Kanban
+            </button>
+          </div>
+        </div>
+
+        <!--
+        ===== CONTENITORE PRINCIPALE DI RENDERING =====
+        Questo div è il "canvas" dell'applicazione.
+        La funzione render() lo svuota con innerHTML = ''
+        e lo ricrea ogni volta da zero, sia in modalità Lista
+        che in modalità Kanban.
+        L'HTML al suo interno non va mai scritto a mano.
+      -->
+        <div id="mainContainer"></div>
+      </div>
     </div>
 
-   
-</body>
+    <script src="script.js"></script>
+  </body>
 </html>

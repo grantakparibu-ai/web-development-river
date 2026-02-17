@@ -1,75 +1,586 @@
-        body {
-            font-family: sans-serif;
-            background-color: #f4f7f6;
-            display: flex;
-            justify-content: center;
-            padding-top: 50px;
-        }
+/* ================================================================
+   TASK MANAGER — style.css
+   Include stili per: card, input, errori, lista, kanban, switcher
+   ================================================================ */
 
-        .card {
-            background: white;
-            padding: 2rem;
-            border-radius: 12px; /* Bordo arrotondato */
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1); /* Leggera ombra */
-            width: 100%;
-            max-width: 400px;
-        }
+/* ---------------------------------------------------------------
+   VARIABILI CSS
+   Un unico posto per tutti i valori riusabili.
+   --------------------------------------------------------------- */
+:root {
+  --color-bg: #f3f2ee;
+  --color-card: #ffffff;
+  --color-border: #e5e2dc;
+  --color-text: #1a1916;
+  --color-text-muted: #8c8980;
 
-        .input-group {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 10px;
-        }
+  --color-primary: #1a1916;
+  --color-primary-hover: #333230;
 
-        input {
-            flex-grow: 1;
-            padding: 8px;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-        }
+  /* Stato "Da fare" — azzurro */
+  --color-todo-bg: #eff6ff;
+  --color-todo-border: #bfdbfe;
+  --color-todo-text: #1d4ed8;
+  --color-todo-header: #dbeafe;
 
-        button#add-btn {
-            background-color: #2ecc71;
-            color: white;
-            border: none;
-            padding: 8px 15px;
-            border-radius: 4px;
-            cursor: pointer;
-        }
+  /* Stato "In corso" — ambra */
+  --color-doing-bg: #fffbeb;
+  --color-doing-border: #fde68a;
+  --color-doing-text: #b45309;
+  --color-doing-header: #fef3c7;
 
-        /* Messaggi di errore */
-        .error-message {
-            color: #e74c3c;
-            font-size: 0.9rem;
-            min-height: 1.2rem;
-            margin-bottom: 10px;
-        }
+  /* Stato "Completato" — verde */
+  --color-done-bg: #f0fdf4;
+  --color-done-border: #bbf7d0;
+  --color-done-text: #15803d;
+  --color-done-header: #dcfce7;
 
-        /* Lista dei task con Flexbox */
-        ul {
-            list-style: none;
-            padding: 0;
-            display: flex;
-            flex-direction: column;
-            gap: 10px; /* Spaziatura verticale regolare */
-        }
+  /* Errore */
+  --color-error-bg: #fef2f2;
+  --color-error-border: #fecaca;
+  --color-error-text: #dc2626;
 
-        li {
-            background: #fafafa;
-            padding: 10px;
-            border: 1px solid #eee;
-            border-radius: 6px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
+  --radius-sm: 6px;
+  --radius-md: 12px;
+  --radius-lg: 20px;
+  --shadow-card: 0 2px 12px rgba(0, 0, 0, 0.07), 0 0 0 1px rgba(0, 0, 0, 0.04);
+  --shadow-btn: 0 1px 3px rgba(0, 0, 0, 0.15);
 
-        .remove-btn {
-            background-color: #e74c3c;
-            color: white;
-            border: none;
-            padding: 5px 10px;
-            border-radius: 4px;
-            cursor: pointer;
-        }
-    </style>
+  --font-main: "DM Sans", sans-serif;
+  --font-mono: "DM Mono", monospace;
+}
+
+/* ---------------------------------------------------------------
+   RESET
+   --------------------------------------------------------------- */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+/* ---------------------------------------------------------------
+   BODY & LAYOUT
+   --------------------------------------------------------------- */
+body {
+  font-family: var(--font-main);
+  background-color: var(--color-bg);
+  color: var(--color-text);
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  padding: 48px 20px;
+}
+
+.app-wrapper {
+  width: 100%;
+  max-width: 900px; /* più largo per accogliere il kanban */
+}
+
+/* ---------------------------------------------------------------
+   CARD
+   --------------------------------------------------------------- */
+.card {
+  background-color: var(--color-card);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-card);
+  border: 1px solid var(--color-border);
+  padding: 32px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* ---------------------------------------------------------------
+   INTESTAZIONE
+   --------------------------------------------------------------- */
+.card-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.header-icon {
+  font-size: 1.1rem;
+  color: var(--color-text-muted);
+}
+
+.card-header h1 {
+  font-size: 1.35rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  flex: 1;
+}
+
+.task-count {
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  color: var(--color-text-muted);
+  background-color: var(--color-bg);
+  border: 1px solid var(--color-border);
+  border-radius: 100px;
+  padding: 3px 10px;
+  white-space: nowrap;
+}
+
+/* ---------------------------------------------------------------
+   FORM DI INPUT
+   --------------------------------------------------------------- */
+.input-section {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.input-row {
+  display: flex;
+  gap: 8px;
+}
+
+.input-text,
+.input-date {
+  padding: 10px 14px;
+  border: 1.5px solid var(--color-border);
+  border-radius: var(--radius-md);
+  font-family: var(--font-main);
+  font-size: 0.9rem;
+  color: var(--color-text);
+  background-color: var(--color-bg);
+  outline: none;
+  transition:
+    border-color 0.15s,
+    background-color 0.15s;
+}
+
+.input-text:focus,
+.input-date:focus {
+  border-color: var(--color-primary);
+  background-color: #fff;
+}
+
+.input-text {
+  flex: 1;
+  min-width: 0;
+}
+
+.input-date {
+  width: 148px;
+  flex-shrink: 0;
+  cursor: pointer;
+}
+
+/* ---------------------------------------------------------------
+   PULSANTI
+   --------------------------------------------------------------- */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 10px 18px;
+  border: none;
+  border-radius: var(--radius-md);
+  font-family: var(--font-main);
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition:
+    background-color 0.15s,
+    transform 0.1s;
+  box-shadow: var(--shadow-btn);
+}
+
+.btn:active {
+  transform: scale(0.97);
+}
+
+.btn-primary {
+  width: 100%;
+  background-color: var(--color-primary);
+  color: #fff;
+}
+
+.btn-primary:hover {
+  background-color: var(--color-primary-hover);
+}
+
+.btn-icon {
+  font-size: 1.1rem;
+  font-weight: 400;
+  line-height: 1;
+}
+
+/* Pulsante Rimuovi */
+.btn-remove {
+  padding: 5px 11px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  background-color: transparent;
+  color: var(--color-text-muted);
+  border: 1.5px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  box-shadow: none;
+  flex-shrink: 0;
+  transition:
+    background-color 0.15s,
+    color 0.15s,
+    border-color 0.15s;
+}
+
+.btn-remove:hover {
+  background-color: var(--color-error-bg);
+  color: var(--color-error-text);
+  border-color: var(--color-error-border);
+}
+
+/* ---------------------------------------------------------------
+   LAYOUT SWITCHER
+   I due pulsanti Lista / Kanban.
+   --------------------------------------------------------------- */
+.layout-switcher {
+  display: flex;
+  gap: 4px;
+  background-color: var(--color-bg);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: 3px;
+}
+
+/* Stile base del singolo pulsante di layout */
+.btn-layout {
+  padding: 5px 12px;
+  border: none;
+  border-radius: var(--radius-sm);
+  font-family: var(--font-main);
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  background-color: transparent;
+  color: var(--color-text-muted);
+  transition:
+    background-color 0.15s,
+    color 0.15s;
+}
+
+/* Pulsante attivo: sfondo bianco e testo scuro */
+.btn-layout.active {
+  background-color: #fff;
+  color: var(--color-text);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.btn-layout:hover:not(.active) {
+  color: var(--color-text);
+}
+
+/* ---------------------------------------------------------------
+   BARRA CONTROLLI (filtro + ordinamento + switcher)
+   --------------------------------------------------------------- */
+.controls-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px 16px;
+  background-color: var(--color-bg);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-border);
+  flex-wrap: wrap;
+}
+
+.controls-bar.hidden {
+  display: none;
+}
+
+.controls-left {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  flex: 1;
+}
+
+/* Nasconde filtro/sort in vista Kanban (non ha senso ordinarla) */
+.controls-left.hidden {
+  display: none;
+}
+
+.controls-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.controls-label {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--color-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+}
+
+.controls-select {
+  padding: 6px 10px;
+  border: 1.5px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  font-family: var(--font-main);
+  font-size: 0.85rem;
+  color: var(--color-text);
+  background-color: #fff;
+  cursor: pointer;
+  outline: none;
+}
+
+/* ---------------------------------------------------------------
+   MESSAGGI DI ERRORE
+   --------------------------------------------------------------- */
+.error-message {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+  background-color: var(--color-error-bg);
+  border: 1px solid var(--color-error-border);
+  border-radius: var(--radius-md);
+  color: var(--color-error-text);
+  font-size: 0.88rem;
+  font-weight: 500;
+  animation: slideDown 0.2s ease-out;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ---------------------------------------------------------------
+   VISTA LISTA — contenitore ul
+   --------------------------------------------------------------- */
+.task-list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+/* ---------------------------------------------------------------
+   SINGOLO TASK (li) — usato sia in lista che nelle colonne kanban
+   --------------------------------------------------------------- */
+.task-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 14px;
+  border-radius: var(--radius-md);
+  border: 1.5px solid var(--color-border);
+  background-color: #fff;
+  transition:
+    border-color 0.2s,
+    background-color 0.2s;
+  animation: taskIn 0.2s ease-out;
+}
+
+@keyframes taskIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Stati del task */
+.task-item.status-todo {
+  background-color: var(--color-todo-bg);
+  border-color: var(--color-todo-border);
+}
+.task-item.status-doing {
+  background-color: var(--color-doing-bg);
+  border-color: var(--color-doing-border);
+}
+.task-item.status-done {
+  background-color: var(--color-done-bg);
+  border-color: var(--color-done-border);
+}
+
+/* Testo principale */
+.task-text {
+  flex: 1;
+  font-size: 0.92rem;
+  font-weight: 500;
+  color: var(--color-text);
+  min-width: 0;
+  word-break: break-word;
+}
+
+/* Testo barrato per i task completati */
+.task-item.status-done .task-text {
+  text-decoration: line-through;
+  color: var(--color-text-muted);
+}
+
+/* Data di scadenza */
+.task-date {
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  color: var(--color-text-muted);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+/* Select stato dentro il task */
+.status-select {
+  padding: 4px 8px;
+  border: 1.5px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  font-family: var(--font-main);
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+  outline: none;
+  background-color: #fff;
+  flex-shrink: 0;
+  transition:
+    border-color 0.15s,
+    background-color 0.15s,
+    color 0.15s;
+}
+
+.task-item.status-todo .status-select {
+  background-color: var(--color-todo-bg);
+  border-color: var(--color-todo-border);
+  color: var(--color-todo-text);
+}
+.task-item.status-doing .status-select {
+  background-color: var(--color-doing-bg);
+  border-color: var(--color-doing-border);
+  color: var(--color-doing-text);
+}
+.task-item.status-done .status-select {
+  background-color: var(--color-done-bg);
+  border-color: var(--color-done-border);
+  color: var(--color-done-text);
+}
+
+/* ---------------------------------------------------------------
+   VISTA KANBAN — tre colonne affiancate
+   --------------------------------------------------------------- */
+
+/* Wrapper delle 3 colonne */
+.kanban-board {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+  align-items: start; /* le colonne non si allungano per riempire */
+}
+
+/* Singola colonna */
+.kanban-col {
+  border-radius: var(--radius-md);
+  border: 1.5px solid var(--color-border);
+  overflow: hidden; /* arrotonda anche l'header */
+  display: flex;
+  flex-direction: column;
+}
+
+/* Header della colonna con colore diverso per stato */
+.kanban-col-header {
+  padding: 10px 14px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.kanban-col[data-status="todo"] .kanban-col-header {
+  background-color: var(--color-todo-header);
+  color: var(--color-todo-text);
+}
+.kanban-col[data-status="doing"] .kanban-col-header {
+  background-color: var(--color-doing-header);
+  color: var(--color-doing-text);
+}
+.kanban-col[data-status="done"] .kanban-col-header {
+  background-color: var(--color-done-header);
+  color: var(--color-done-text);
+}
+
+/* Badge con il conteggio dei task nella colonna */
+.kanban-col-count {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  padding: 2px 7px;
+  border-radius: 100px;
+  background-color: rgba(255, 255, 255, 0.6);
+}
+
+/* Lista di task dentro la colonna */
+.kanban-col-body {
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-height: 80px; /* la colonna non collassa quando è vuota */
+  background-color: var(--color-bg);
+}
+
+/* Messaggio "nessun task" nella colonna vuota */
+.kanban-empty {
+  text-align: center;
+  font-size: 0.82rem;
+  color: var(--color-text-muted);
+  padding: 16px 8px;
+}
+
+/* In kanban la select è opzionale da mostrare: la usiamo ma compatta */
+.kanban-col-body .task-item {
+  flex-wrap: wrap;
+}
+
+/* Su schermi stretti il kanban va in colonna singola */
+@media (max-width: 620px) {
+  .kanban-board {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ---------------------------------------------------------------
+   STATO VUOTO (nessun task nell'intera lista)
+   --------------------------------------------------------------- */
+.empty-state {
+  text-align: center;
+  padding: 32px 20px;
+  color: var(--color-text-muted);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+
+.empty-state.hidden {
+  display: none;
+}
+
+.empty-icon {
+  font-size: 2rem;
+  opacity: 0.3;
+}
+
+.empty-state p {
+  font-size: 0.9rem;
+}
