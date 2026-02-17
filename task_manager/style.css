@@ -97,7 +97,9 @@ body {
    --------------------------------------------------------------- */
 .app-wrapper {
   width: 100%;
-  max-width: 580px;
+  /* 860px: larghezza minima perché le 3 colonne kanban abbiano respiro.
+     In vista Lista la card rimane centrata e leggibile comunque. */
+  max-width: 860px;
 }
 
 /* ---------------------------------------------------------------
@@ -554,7 +556,8 @@ body {
   flex-wrap: wrap;
 }
 
-@media (max-width: 560px) {
+/* Sotto 480px (smartphone piccoli) il kanban va in colonna singola */
+@media (max-width: 480px) {
   .kanban-board {
     grid-template-columns: 1fr;
   }
