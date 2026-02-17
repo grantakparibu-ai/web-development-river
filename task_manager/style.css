@@ -1,21 +1,27 @@
 /* ================================================================
-   TASK MANAGER — style.css
-   Include stili per: card, input, errori, lista, kanban, switcher
+   TASK MANAGER — style.css  ★ VERSIONE CORRENTE
+   Modifiche rispetto al backup (style.backup.css):
+   • Sfondo pagina → verde acqua (#3D9690)
+   • Card → più quadrata: max-width ridotto + min-height aumentato
+     + padding simmetrico + border-radius più contenuto
    ================================================================ */
 
 /* ---------------------------------------------------------------
    VARIABILI CSS
-   Un unico posto per tutti i valori riusabili.
    --------------------------------------------------------------- */
 :root {
-  --color-bg: #f3f2ee;
+  /* ── Palette verde acqua ──────────────────────────────────── */
+  --color-bg: #3d9690; /* verde acqua scuro — sfondo pagina  */
+  --color-bg-light: #4eada7; /* tono più chiaro per dettagli interni */
+
   --color-card: #ffffff;
   --color-border: #e5e2dc;
   --color-text: #1a1916;
   --color-text-muted: #8c8980;
 
-  --color-primary: #1a1916;
-  --color-primary-hover: #333230;
+  /* Pulsante primario: usa il teal scuro anziché il nero */
+  --color-primary: #1a5f5a;
+  --color-primary-hover: #124542;
 
   /* Stato "Da fare" — azzurro */
   --color-todo-bg: #eff6ff;
@@ -40,11 +46,13 @@
   --color-error-border: #fecaca;
   --color-error-text: #dc2626;
 
+  /* ── Geometria ────────────────────────────────────────────── */
   --radius-sm: 6px;
   --radius-md: 12px;
-  --radius-lg: 20px;
-  --shadow-card: 0 2px 12px rgba(0, 0, 0, 0.07), 0 0 0 1px rgba(0, 0, 0, 0.04);
-  --shadow-btn: 0 1px 3px rgba(0, 0, 0, 0.15);
+  --radius-lg: 14px; /* ridotto rispetto al backup (20px→14px):
+                            angoli meno arrotondati = aspetto più squadrato */
+  --shadow-card: 0 6px 28px rgba(0, 0, 0, 0.22), 0 0 0 1px rgba(0, 0, 0, 0.06);
+  --shadow-btn: 0 2px 6px rgba(0, 0, 0, 0.2);
 
   --font-main: "DM Sans", sans-serif;
   --font-mono: "DM Mono", monospace;
@@ -62,11 +70,19 @@
 }
 
 /* ---------------------------------------------------------------
-   BODY & LAYOUT
+   BODY — sfondo verde acqua con gradiente radiale sottile
+   Il gradiente aggiunge profondità senza risultare pesante.
    --------------------------------------------------------------- */
 body {
   font-family: var(--font-main);
   background-color: var(--color-bg);
+  background-image:
+    radial-gradient(
+      ellipse at 25% 15%,
+      rgba(255, 255, 255, 0.12) 0%,
+      transparent 55%
+    ),
+    radial-gradient(ellipse at 80% 85%, rgba(0, 0, 0, 0.1) 0%, transparent 50%);
   color: var(--color-text);
   min-height: 100vh;
   display: flex;
@@ -74,23 +90,34 @@ body {
   padding: 48px 20px;
 }
 
+/* ---------------------------------------------------------------
+   APP WRAPPER
+   max-width ridotto (900→580px): con la card più stretta
+   il rapporto larghezza/altezza si avvicina a un quadrato.
+   --------------------------------------------------------------- */
 .app-wrapper {
   width: 100%;
-  max-width: 900px; /* più largo per accogliere il kanban */
+  max-width: 580px;
 }
 
 /* ---------------------------------------------------------------
-   CARD
+   CARD — più quadrata
+   Rispetto al backup:
+   • max-width passato da 900px a 580px (wrapper)
+   • border-radius ridotto: 20px → 14px (meno "ovale")
+   • padding uniforme 36px su tutti i lati
+   • min-height: 560px  →  altezza minima vicina alla larghezza
    --------------------------------------------------------------- */
 .card {
   background-color: var(--color-card);
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow-card);
   border: 1px solid var(--color-border);
-  padding: 32px;
+  padding: 36px; /* uguale su tutti i lati → aspetto cubico */
   display: flex;
   flex-direction: column;
   gap: 20px;
+  min-height: 560px; /* dà "corpo" verticale per avvicinarsi al quadrato */
 }
 
 /* ---------------------------------------------------------------
@@ -106,7 +133,7 @@ body {
 
 .header-icon {
   font-size: 1.1rem;
-  color: var(--color-text-muted);
+  color: var(--color-primary); /* icona in teal per coerenza cromatica */
 }
 
 .card-header h1 {
@@ -116,11 +143,12 @@ body {
   flex: 1;
 }
 
+/* Pillola contatore task */
 .task-count {
   font-family: var(--font-mono);
   font-size: 0.78rem;
   color: var(--color-text-muted);
-  background-color: var(--color-bg);
+  background-color: #f3f2ee;
   border: 1px solid var(--color-border);
   border-radius: 100px;
   padding: 3px 10px;
@@ -135,7 +163,6 @@ body {
   flex-direction: column;
   gap: 10px;
 }
-
 .input-row {
   display: flex;
   gap: 8px;
@@ -149,7 +176,7 @@ body {
   font-family: var(--font-main);
   font-size: 0.9rem;
   color: var(--color-text);
-  background-color: var(--color-bg);
+  background-color: #f7f9fa;
   outline: none;
   transition:
     border-color 0.15s,
@@ -162,11 +189,19 @@ body {
   background-color: #fff;
 }
 
+/*
+  Input data con bordo rosso: classe aggiunta da JS
+  quando l'utente prova ad aggiungere un task senza data.
+*/
+.input-date.input-error {
+  border-color: var(--color-error-text);
+  background-color: var(--color-error-bg);
+}
+
 .input-text {
   flex: 1;
   min-width: 0;
 }
-
 .input-date {
   width: 148px;
   flex-shrink: 0;
@@ -198,12 +233,12 @@ body {
   transform: scale(0.97);
 }
 
+/* Pulsante primario — teal scuro */
 .btn-primary {
   width: 100%;
   background-color: var(--color-primary);
   color: #fff;
 }
-
 .btn-primary:hover {
   background-color: var(--color-primary-hover);
 }
@@ -230,7 +265,6 @@ body {
     color 0.15s,
     border-color 0.15s;
 }
-
 .btn-remove:hover {
   background-color: var(--color-error-bg);
   color: var(--color-error-text);
@@ -239,18 +273,16 @@ body {
 
 /* ---------------------------------------------------------------
    LAYOUT SWITCHER
-   I due pulsanti Lista / Kanban.
    --------------------------------------------------------------- */
 .layout-switcher {
   display: flex;
   gap: 4px;
-  background-color: var(--color-bg);
+  background-color: #f3f2ee;
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
   padding: 3px;
 }
 
-/* Stile base del singolo pulsante di layout */
 .btn-layout {
   padding: 5px 12px;
   border: none;
@@ -265,20 +297,17 @@ body {
     background-color 0.15s,
     color 0.15s;
 }
-
-/* Pulsante attivo: sfondo bianco e testo scuro */
 .btn-layout.active {
   background-color: #fff;
   color: var(--color-text);
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
-
 .btn-layout:hover:not(.active) {
   color: var(--color-text);
 }
 
 /* ---------------------------------------------------------------
-   BARRA CONTROLLI (filtro + ordinamento + switcher)
+   BARRA CONTROLLI
    --------------------------------------------------------------- */
 .controls-bar {
   display: flex;
@@ -286,28 +315,23 @@ body {
   justify-content: space-between;
   gap: 12px;
   padding: 14px 16px;
-  background-color: var(--color-bg);
+  background-color: #f7f9fa;
   border-radius: var(--radius-md);
   border: 1px solid var(--color-border);
   flex-wrap: wrap;
 }
-
 .controls-bar.hidden {
   display: none;
 }
-
 .controls-left {
   display: flex;
   gap: 12px;
   flex-wrap: wrap;
   flex: 1;
 }
-
-/* Nasconde filtro/sort in vista Kanban (non ha senso ordinarla) */
 .controls-left.hidden {
   display: none;
 }
-
 .controls-group {
   display: flex;
   align-items: center;
@@ -364,7 +388,7 @@ body {
 }
 
 /* ---------------------------------------------------------------
-   VISTA LISTA — contenitore ul
+   VISTA LISTA
    --------------------------------------------------------------- */
 .task-list {
   list-style: none;
@@ -373,9 +397,6 @@ body {
   gap: 8px;
 }
 
-/* ---------------------------------------------------------------
-   SINGOLO TASK (li) — usato sia in lista che nelle colonne kanban
-   --------------------------------------------------------------- */
 .task-item {
   display: flex;
   align-items: center;
@@ -401,7 +422,6 @@ body {
   }
 }
 
-/* Stati del task */
 .task-item.status-todo {
   background-color: var(--color-todo-bg);
   border-color: var(--color-todo-border);
@@ -415,7 +435,6 @@ body {
   border-color: var(--color-done-border);
 }
 
-/* Testo principale */
 .task-text {
   flex: 1;
   font-size: 0.92rem;
@@ -424,14 +443,10 @@ body {
   min-width: 0;
   word-break: break-word;
 }
-
-/* Testo barrato per i task completati */
 .task-item.status-done .task-text {
   text-decoration: line-through;
   color: var(--color-text-muted);
 }
-
-/* Data di scadenza */
 .task-date {
   font-family: var(--font-mono);
   font-size: 0.75rem;
@@ -440,7 +455,6 @@ body {
   flex-shrink: 0;
 }
 
-/* Select stato dentro il task */
 .status-select {
   padding: 4px 8px;
   border: 1.5px solid var(--color-border);
@@ -475,27 +489,22 @@ body {
 }
 
 /* ---------------------------------------------------------------
-   VISTA KANBAN — tre colonne affiancate
+   VISTA KANBAN
    --------------------------------------------------------------- */
-
-/* Wrapper delle 3 colonne */
 .kanban-board {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 16px;
-  align-items: start; /* le colonne non si allungano per riempire */
+  gap: 14px;
+  align-items: start;
 }
-
-/* Singola colonna */
 .kanban-col {
   border-radius: var(--radius-md);
   border: 1.5px solid var(--color-border);
-  overflow: hidden; /* arrotonda anche l'header */
+  overflow: hidden;
   display: flex;
   flex-direction: column;
 }
 
-/* Header della colonna con colore diverso per stato */
 .kanban-col-header {
   padding: 10px 14px;
   font-size: 0.8rem;
@@ -520,7 +529,6 @@ body {
   color: var(--color-done-text);
 }
 
-/* Badge con il conteggio dei task nella colonna */
 .kanban-col-count {
   font-family: var(--font-mono);
   font-size: 0.72rem;
@@ -528,39 +536,32 @@ body {
   border-radius: 100px;
   background-color: rgba(255, 255, 255, 0.6);
 }
-
-/* Lista di task dentro la colonna */
 .kanban-col-body {
   padding: 10px;
   display: flex;
   flex-direction: column;
   gap: 8px;
-  min-height: 80px; /* la colonna non collassa quando è vuota */
-  background-color: var(--color-bg);
+  min-height: 80px;
+  background-color: #f7f9fa;
 }
-
-/* Messaggio "nessun task" nella colonna vuota */
 .kanban-empty {
   text-align: center;
   font-size: 0.82rem;
   color: var(--color-text-muted);
   padding: 16px 8px;
 }
-
-/* In kanban la select è opzionale da mostrare: la usiamo ma compatta */
 .kanban-col-body .task-item {
   flex-wrap: wrap;
 }
 
-/* Su schermi stretti il kanban va in colonna singola */
-@media (max-width: 620px) {
+@media (max-width: 560px) {
   .kanban-board {
     grid-template-columns: 1fr;
   }
 }
 
 /* ---------------------------------------------------------------
-   STATO VUOTO (nessun task nell'intera lista)
+   STATO VUOTO
    --------------------------------------------------------------- */
 .empty-state {
   text-align: center;
@@ -570,17 +571,15 @@ body {
   flex-direction: column;
   align-items: center;
   gap: 10px;
+  flex: 1;
 }
-
 .empty-state.hidden {
   display: none;
 }
-
 .empty-icon {
   font-size: 2rem;
   opacity: 0.3;
 }
-
 .empty-state p {
   font-size: 0.9rem;
 }
