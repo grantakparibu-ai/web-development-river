@@ -11,8 +11,8 @@
    --------------------------------------------------------------- */
 :root {
   /* ── Palette verde acqua ──────────────────────────────────── */
-  --color-bg: #3d9690; /* verde acqua scuro — sfondo pagina  */
-  --color-bg-light: #4eada7; /* tono più chiaro per dettagli interni */
+  --color-bg: blueviolet; /* verde acqua scuro — sfondo pagina  */
+  --color-bg-light: blueviolet; /* tono più chiaro per dettagli interni */
 
   --color-card: #ffffff;
   --color-border: #e5e2dc;
@@ -20,8 +20,8 @@
   --color-text-muted: #8c8980;
 
   /* Pulsante primario: usa il teal scuro anziché il nero */
-  --color-primary: #1a5f5a;
-  --color-primary-hover: #124542;
+  --color-primary: blueviolet;
+  --color-primary-hover: rgb(69, 15, 120);
 
   /* Stato "Da fare" — azzurro */
   --color-todo-bg: #eff6ff;
@@ -75,7 +75,7 @@
    --------------------------------------------------------------- */
 body {
   font-family: var(--font-main);
-  background-color: var(--color-bg);
+  background-color: blueviolet;
   background-image:
     radial-gradient(
       ellipse at 25% 15%,
