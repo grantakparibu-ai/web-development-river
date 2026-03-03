@@ -3,26 +3,9 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-
-    <!--
-    CSP: blocca script inline da origini esterne non autorizzate,
-    impedisce l'injection di risorse malevole.
-    'self' = solo file locali. 'unsafe-inline' necessario per stile
-    inline minimo; in prod usare nonce.
-  -->
-    <meta
-      http-equiv="Content-Security-Policy"
-      content="default-src 'self';
-                 script-src 'self';
-                 style-src 'self' https://fonts.googleapis.com;
-                 font-src https://fonts.gstatic.com;
-                 img-src 'none';"
-    />
-
     <meta name="referrer" content="no-referrer" />
     <title>ACCESS // PORTAL</title>
 
-    <!-- Google Font: JetBrains Mono — monospace aggressivo da dev -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
@@ -31,18 +14,23 @@
     />
 
     <link rel="stylesheet" href="css/login.css" />
-    <script src="js/login.js"></script>
+    <!--
+      NOTA: lo script è caricato UNA SOLA VOLTA, in fondo al body.
+      Caricarlo qui nell'head E in fondo causerebbe doppia esecuzione
+      di tutto il codice: doppi event listener, canvas doppio, ecc.
+    -->
   </head>
   <body>
-    <!-- Overlay con scanlines — effetto CRT/terminale -->
+
+    <!-- Overlay scanlines — effetto CRT/terminale -->
     <div class="scanlines" aria-hidden="true"></div>
 
-    <!-- Particelle di sfondo generate via JS -->
+    <!-- Canvas particelle di sfondo (generato via JS) -->
     <canvas id="bg-canvas" aria-hidden="true"></canvas>
 
     <main class="login-wrapper">
       <div class="login-card">
-        <!-- Header con glitch sul titolo -->
+
         <header class="card-header">
           <div class="logo-mark" aria-hidden="true">⬡</div>
           <h1 class="glitch" data-text="ACCESS">ACCESS</h1>
@@ -50,12 +38,11 @@
         </header>
 
         <!--
-        action="#" → nessun submit a server reale.
-        novalidate → gestiamo noi la validazione lato JS
-        per controllo completo sull'UX e sui messaggi.
-        autocomplete="off" sulla form, ma poi abilitiamo
-        selettivamente username/password per i password manager.
-      -->
+          action="#" → nessun submit a server reale.
+          novalidate → gestiamo noi la validazione in JS.
+          autocomplete="off" sulla form, abilitato selettivamente
+          sugli input per i password manager.
+        -->
         <form
           id="login-form"
           action="#"
@@ -63,6 +50,7 @@
           novalidate
           autocomplete="off"
         >
+
           <div class="field-group">
             <label for="username">UTENTE</label>
             <div class="input-wrapper">
@@ -94,9 +82,9 @@
                 required
               />
               <!--
-              Toggle visibilità password: accessibilità + UX.
-              aria-label cambia dinamicamente via JS.
-            -->
+                Toggle visibilità password.
+                JS alterna passwordEl.type tra "password" e "text".
+              -->
               <button type="button" id="toggle-pw" aria-label="Mostra password">
                 <span id="eye-icon">👁</span>
               </button>
@@ -104,11 +92,10 @@
           </div>
 
           <!--
-          Checkbox "Resta collegato":
-          SE selezionata → cookie con expires = +7 giorni
-          SE non selezionata → session cookie (nessun expires),
-          scade alla chiusura del browser.
-        -->
+            Checkbox "Resta collegato":
+            selezionata  → Expires +7 giorni su tutti i cookie
+            deselezionata → session cookie (scade alla chiusura browser)
+          -->
           <div class="remember-row">
             <label class="checkbox-label">
               <input type="checkbox" id="remember-me" name="remember" />
@@ -119,10 +106,9 @@
           </div>
 
           <!--
-          #message-box: area ARIA live per accessibilità.
-          aria-live="assertive" → screen reader annuncia subito
-          qualsiasi errore o successo senza aspettare il focus.
-        -->
+            Message box ARIA live: annunciato subito dagli screen reader
+            senza aspettare il focus (aria-live="assertive").
+          -->
           <div
             id="message-box"
             role="alert"
@@ -130,7 +116,7 @@
             aria-atomic="true"
           ></div>
 
-          <!-- Barra progresso lockout — visibile solo durante il cooldown -->
+          <!-- Barra progress lockout — visibile solo durante il cooldown -->
           <div id="lockout-bar-wrap" aria-hidden="true">
             <div id="lockout-bar"></div>
             <span id="lockout-timer"></span>
@@ -141,18 +127,23 @@
             <span class="btn-arrow" aria-hidden="true">→</span>
           </button>
 
-          <!-- Tentativo counter — feedback visivo senza essere verbosi -->
+          <!-- Tentativo counter — feedback visivo tentativi rimasti -->
           <p id="attempts-counter" aria-live="polite"></p>
+
         </form>
       </div>
 
       <footer class="login-footer">
         <span>SEC-LVL: MAX</span>
         <span id="clock"></span>
-        <span>v2.0.1</span>
+        <span>v2.1.0</span>
       </footer>
     </main>
 
+    <!--
+      Script in fondo al body (UNA SOLA VOLTA).
+      Tutto il codice è dentro DOMContentLoaded → nessun problema di timing.
+    -->
     <script src="js/login.js"></script>
   </body>
 </html>

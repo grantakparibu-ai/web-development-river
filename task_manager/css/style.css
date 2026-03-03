@@ -1,25 +1,15 @@
 /* ================================================================
-   TASK MANAGER — style.css  ★ VERSIONE CORRENTE
-   Modifiche rispetto al backup (style.backup.css):
-   • Sfondo pagina → verde acqua (#3D9690)
-   • Card → più quadrata: max-width ridotto + min-height aumentato
-     + padding simmetrico + border-radius più contenuto
+   TASK MANAGER — style.css
+   Tema: BlueViolet
    ================================================================ */
 
-/* ---------------------------------------------------------------
-   VARIABILI CSS
-   --------------------------------------------------------------- */
+/* ── VARIABILI ── */
 :root {
-  /* ── Palette verde acqua ──────────────────────────────────── */
-  --color-bg: blueviolet; /* verde acqua scuro — sfondo pagina  */
-  --color-bg-light: blueviolet; /* tono più chiaro per dettagli interni */
-
+  --color-bg: blueviolet;
   --color-card: #ffffff;
   --color-border: #e5e2dc;
   --color-text: #1a1916;
   --color-text-muted: #8c8980;
-
-  /* Pulsante primario: usa il teal scuro anziché il nero */
   --color-primary: blueviolet;
   --color-primary-hover: rgb(69, 15, 120);
 
@@ -46,11 +36,9 @@
   --color-error-border: #fecaca;
   --color-error-text: #dc2626;
 
-  /* ── Geometria ────────────────────────────────────────────── */
   --radius-sm: 6px;
   --radius-md: 12px;
-  --radius-lg: 14px; /* ridotto rispetto al backup (20px→14px):
-                            angoli meno arrotondati = aspetto più squadrato */
+  --radius-lg: 14px;
   --shadow-card: 0 6px 28px rgba(0, 0, 0, 0.22), 0 0 0 1px rgba(0, 0, 0, 0.06);
   --shadow-btn: 0 2px 6px rgba(0, 0, 0, 0.2);
 
@@ -58,9 +46,7 @@
   --font-mono: "DM Mono", monospace;
 }
 
-/* ---------------------------------------------------------------
-   RESET
-   --------------------------------------------------------------- */
+/* ── RESET ── */
 *,
 *::before,
 *::after {
@@ -69,10 +55,7 @@
   padding: 0;
 }
 
-/* ---------------------------------------------------------------
-   BODY — sfondo verde acqua con gradiente radiale sottile
-   Il gradiente aggiunge profondità senza risultare pesante.
-   --------------------------------------------------------------- */
+/* ── BODY ── */
 body {
   font-family: var(--font-main);
   background-color: blueviolet;
@@ -90,52 +73,38 @@ body {
   padding: 48px 20px;
 }
 
-/* ---------------------------------------------------------------
-   APP WRAPPER
-   max-width ridotto (900→580px): con la card più stretta
-   il rapporto larghezza/altezza si avvicina a un quadrato.
-   --------------------------------------------------------------- */
+/* ── APP WRAPPER ── */
 .app-wrapper {
   width: 100%;
-  /* 860px: larghezza minima perché le 3 colonne kanban abbiano respiro.
-     In vista Lista la card rimane centrata e leggibile comunque. */
   max-width: 860px;
 }
 
-/* ---------------------------------------------------------------
-   CARD — più quadrata
-   Rispetto al backup:
-   • max-width passato da 900px a 580px (wrapper)
-   • border-radius ridotto: 20px → 14px (meno "ovale")
-   • padding uniforme 36px su tutti i lati
-   • min-height: 560px  →  altezza minima vicina alla larghezza
-   --------------------------------------------------------------- */
+/* ── CARD ── */
 .card {
-  background-color: var(--color-card);
+  background-color: #282871; /* #0dbf66 #e3e184; var(--color-card);*/
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow-card);
   border: 1px solid var(--color-border);
-  padding: 36px; /* uguale su tutti i lati → aspetto cubico */
+  padding: 36px;
   display: flex;
   flex-direction: column;
   gap: 20px;
-  min-height: 560px; /* dà "corpo" verticale per avvicinarsi al quadrato */
+  min-height: 560px;
 }
 
-/* ---------------------------------------------------------------
-   INTESTAZIONE
-   --------------------------------------------------------------- */
+/* ── INTESTAZIONE ── */
 .card-header {
   display: flex;
   align-items: center;
   gap: 12px;
   padding-bottom: 20px;
   border-bottom: 1px solid var(--color-border);
+  flex-wrap: wrap;
 }
 
 .header-icon {
   font-size: 1.1rem;
-  color: var(--color-primary); /* icona in teal per coerenza cromatica */
+  color: var(--color-primary);
 }
 
 .card-header h1 {
@@ -143,9 +112,10 @@ body {
   font-weight: 700;
   letter-spacing: -0.02em;
   flex: 1;
+  min-width: 0;
+  color: white;
 }
 
-/* Pillola contatore task */
 .task-count {
   font-family: var(--font-mono);
   font-size: 0.78rem;
@@ -157,9 +127,75 @@ body {
   white-space: nowrap;
 }
 
-/* ---------------------------------------------------------------
-   FORM DI INPUT
-   --------------------------------------------------------------- */
+/* ── HEADER RIGHT (greeting + timer + logout) ── */
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-left: auto;
+  flex-wrap: wrap;
+}
+
+.user-greeting {
+  font-size: 0.82rem;
+  color: var(--color-text-muted);
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+/*
+  Session Timer: mostra il countdown della sessione.
+  Diventa rosso (.timer-warning) quando mancano meno di 5 minuti.
+*/
+.session-timer {
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  color: var(--color-text-muted);
+  background: #f3f2ee;
+  border: 1px solid var(--color-border);
+  border-radius: 100px;
+  padding: 3px 10px;
+  white-space: nowrap;
+  transition:
+    color 0.3s,
+    border-color 0.3s,
+    background 0.3s;
+}
+
+.session-timer.timer-warning {
+  color: var(--color-error-text) !important;
+  border-color: var(--color-error-border) !important;
+  background: var(--color-error-bg) !important;
+}
+
+/*
+  Bottone Logout: stile neutro, rosso al hover.
+  JS vi attacca un click → deleteCookie + redirect.
+*/
+.btn-logout {
+  padding: 6px 14px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  background: transparent;
+  color: var(--color-text-muted);
+  border: 1.5px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  font-family: var(--font-main);
+  white-space: nowrap;
+  transition:
+    background 0.15s,
+    color 0.15s,
+    border-color 0.15s;
+}
+
+.btn-logout:hover {
+  background: var(--color-error-bg);
+  color: var(--color-error-text);
+  border-color: var(--color-error-border);
+}
+
+/* ── FORM DI INPUT ── */
 .input-section {
   display: flex;
   flex-direction: column;
@@ -191,10 +227,6 @@ body {
   background-color: #fff;
 }
 
-/*
-  Input data con bordo rosso: classe aggiunta da JS
-  quando l'utente prova ad aggiungere un task senza data.
-*/
 .input-date.input-error {
   border-color: var(--color-error-text);
   background-color: var(--color-error-bg);
@@ -210,9 +242,7 @@ body {
   cursor: pointer;
 }
 
-/* ---------------------------------------------------------------
-   PULSANTI
-   --------------------------------------------------------------- */
+/* ── PULSANTI ── */
 .btn {
   display: inline-flex;
   align-items: center;
@@ -235,7 +265,6 @@ body {
   transform: scale(0.97);
 }
 
-/* Pulsante primario — teal scuro */
 .btn-primary {
   width: 100%;
   background-color: var(--color-primary);
@@ -251,7 +280,6 @@ body {
   line-height: 1;
 }
 
-/* Pulsante Rimuovi */
 .btn-remove {
   padding: 5px 11px;
   font-size: 0.78rem;
@@ -262,55 +290,20 @@ body {
   border-radius: var(--radius-sm);
   box-shadow: none;
   flex-shrink: 0;
+  cursor: pointer;
   transition:
     background-color 0.15s,
     color 0.15s,
     border-color 0.15s;
 }
+
 .btn-remove:hover {
   background-color: var(--color-error-bg);
   color: var(--color-error-text);
   border-color: var(--color-error-border);
 }
 
-/* ---------------------------------------------------------------
-   LAYOUT SWITCHER
-   --------------------------------------------------------------- */
-.layout-switcher {
-  display: flex;
-  gap: 4px;
-  background-color: #f3f2ee;
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-md);
-  padding: 3px;
-}
-
-.btn-layout {
-  padding: 5px 12px;
-  border: none;
-  border-radius: var(--radius-sm);
-  font-family: var(--font-main);
-  font-size: 0.82rem;
-  font-weight: 600;
-  cursor: pointer;
-  background-color: transparent;
-  color: var(--color-text-muted);
-  transition:
-    background-color 0.15s,
-    color 0.15s;
-}
-.btn-layout.active {
-  background-color: #fff;
-  color: var(--color-text);
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-}
-.btn-layout:hover:not(.active) {
-  color: var(--color-text);
-}
-
-/* ---------------------------------------------------------------
-   BARRA CONTROLLI
-   --------------------------------------------------------------- */
+/* ── BARRA CONTROLLI ── */
 .controls-bar {
   display: flex;
   align-items: center;
@@ -322,6 +315,7 @@ body {
   border: 1px solid var(--color-border);
   flex-wrap: wrap;
 }
+
 .controls-bar.hidden {
   display: none;
 }
@@ -361,9 +355,50 @@ body {
   outline: none;
 }
 
-/* ---------------------------------------------------------------
-   MESSAGGI DI ERRORE
-   --------------------------------------------------------------- */
+/* ── LAYOUT SWITCHER ── */
+/*
+  I due bottoni Lista/Kanban mostrano chiaramente quale vista è attiva.
+  Il bottone .active ha sfondo bianco + shadow → "sollevato".
+  Il bottone inattivo è grigio e piatto → "incassato".
+*/
+.layout-switcher {
+  display: flex;
+  gap: 4px;
+  background-color: #e9e7e1;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: 3px;
+}
+
+.btn-layout {
+  padding: 6px 14px;
+  border: none;
+  border-radius: var(--radius-sm);
+  font-family: var(--font-main);
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  background-color: transparent;
+  color: var(--color-text-muted);
+  transition:
+    background-color 0.15s,
+    color 0.15s,
+    box-shadow 0.15s;
+}
+
+/* Vista attiva: bianco, testo scuro, shadow — visivamente "selezionato" */
+.btn-layout.active {
+  background-color: #fff;
+  color: var(--color-primary);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.15);
+  border: 1px solid rgba(138, 43, 226, 0.2);
+}
+
+.btn-layout:hover:not(.active) {
+  color: var(--color-text);
+}
+
+/* ── ERRORI ── */
 .error-message {
   display: flex;
   align-items: center;
@@ -389,9 +424,7 @@ body {
   }
 }
 
-/* ---------------------------------------------------------------
-   VISTA LISTA
-   --------------------------------------------------------------- */
+/* ── VISTA LISTA ── */
 .task-list {
   list-style: none;
   display: flex;
@@ -445,10 +478,12 @@ body {
   min-width: 0;
   word-break: break-word;
 }
+
 .task-item.status-done .task-text {
   text-decoration: line-through;
   color: var(--color-text-muted);
 }
+
 .task-date {
   font-family: var(--font-mono);
   font-size: 0.75rem;
@@ -490,85 +525,97 @@ body {
   color: var(--color-done-text);
 }
 
-/* ---------------------------------------------------------------
-   VISTA KANBAN
-   --------------------------------------------------------------- */
+/* ── VISTA KANBAN ── */
+/*
+  3 colonne affiancate, ognuna con header colorato per stato.
+  In kanban, list-style non si applica (usiamo <div>).
+  I task-item dentro le colonne hanno flex-wrap per evitare overflow.
+*/
 .kanban-board {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 14px;
   align-items: start;
 }
+
 .kanban-col {
   border-radius: var(--radius-md);
-  border: 1.5px solid var(--color-border);
   overflow: hidden;
   display: flex;
   flex-direction: column;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.07);
 }
 
+/* Header colonna: colore diverso per ogni stato + bordo superiore bold */
 .kanban-col-header {
-  padding: 10px 14px;
-  font-size: 0.8rem;
+  padding: 12px 14px;
+  font-size: 0.82rem;
   font-weight: 700;
   letter-spacing: 0.03em;
   text-transform: uppercase;
   display: flex;
   align-items: center;
   justify-content: space-between;
+  border-bottom: 2px solid transparent;
 }
 
 .kanban-col[data-status="todo"] .kanban-col-header {
   background-color: var(--color-todo-header);
   color: var(--color-todo-text);
+  border-color: var(--color-todo-border);
+  border-top: 3px solid #3b82f6;
 }
+
 .kanban-col[data-status="doing"] .kanban-col-header {
   background-color: var(--color-doing-header);
   color: var(--color-doing-text);
+  border-color: var(--color-doing-border);
+  border-top: 3px solid #f59e0b;
 }
+
 .kanban-col[data-status="done"] .kanban-col-header {
   background-color: var(--color-done-header);
   color: var(--color-done-text);
+  border-color: var(--color-done-border);
+  border-top: 3px solid #22c55e;
 }
 
 .kanban-col-count {
   font-family: var(--font-mono);
   font-size: 0.72rem;
-  padding: 2px 7px;
+  padding: 2px 8px;
   border-radius: 100px;
-  background-color: rgba(255, 255, 255, 0.6);
+  background-color: rgba(255, 255, 255, 0.7);
+  font-weight: 700;
 }
+
 .kanban-col-body {
   padding: 10px;
   display: flex;
   flex-direction: column;
   gap: 8px;
-  min-height: 80px;
+  min-height: 100px;
   background-color: #f7f9fa;
 }
+
+/* I task item nella kanban non sono <li> ma <div> — stile identico */
+.kanban-col-body .task-item {
+  flex-wrap: wrap;
+  border-radius: var(--radius-sm);
+}
+
 .kanban-empty {
   text-align: center;
   font-size: 0.82rem;
   color: var(--color-text-muted);
-  padding: 16px 8px;
-}
-.kanban-col-body .task-item {
-  flex-wrap: wrap;
+  padding: 20px 8px;
+  font-style: italic;
 }
 
-/* Sotto 480px (smartphone piccoli) il kanban va in colonna singola */
-@media (max-width: 480px) {
-  .kanban-board {
-    grid-template-columns: 1fr;
-  }
-}
-
-/* ---------------------------------------------------------------
-   STATO VUOTO
-   --------------------------------------------------------------- */
+/* ── STATO VUOTO ── */
 .empty-state {
   text-align: center;
-  padding: 32px 20px;
+  padding: 40px 20px;
   color: var(--color-text-muted);
   display: flex;
   flex-direction: column;
@@ -576,13 +623,37 @@ body {
   gap: 10px;
   flex: 1;
 }
-.empty-state.hidden {
-  display: none;
-}
+
 .empty-icon {
-  font-size: 2rem;
-  opacity: 0.3;
+  font-size: 2.5rem;
+  opacity: 0.2;
 }
+
 .empty-state p {
   font-size: 0.9rem;
+}
+
+/* ── RESPONSIVE ── */
+@media (max-width: 640px) {
+  .kanban-board {
+    grid-template-columns: 1fr;
+  }
+  .card {
+    padding: 20px;
+  }
+  .header-right {
+    gap: 6px;
+  }
+  .user-greeting {
+    display: none;
+  } /* su mobile tolta per spazio */
+}
+
+@media (max-width: 480px) {
+  .input-row {
+    flex-direction: column;
+  }
+  .input-date {
+    width: 100%;
+  }
 }

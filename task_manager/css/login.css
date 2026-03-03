@@ -4,15 +4,14 @@
   ============================================================
 
   PALETTE:
-    --bv       : blueviolet (#8A2BE2) — colore dominante richiesto
+    --bv       : blueviolet (#8A2BE2) — colore dominante
     --bv-dark  : versione scura per sfumature
     --bv-light : versione luminosa per accenti
-    --acid     : verde acido per successo — contrasto brutale
+    --acid     : verde acido per successo
     --danger   : rosso tagliente per errori
     --ink      : nero quasi assoluto per la card
 
-  FONT: JetBrains Mono — un solo font, pesi diversi.
-        Scelta deliberata: monospace = codice = sicurezza = credibilità.
+  FONT: JetBrains Mono — monospace = codice = sicurezza.
 
   FILOSOFIA VISIVA:
     Spigoli netti, zero border-radius tondo,
@@ -30,31 +29,29 @@
 }
 
 :root {
-  --bv: #8a2be2;
-  --bv-dark: #5c1a9b;
-  --bv-glow: rgba(138, 43, 226, 0.45);
-  --bv-dim: rgba(138, 43, 226, 0.15);
-  --acid: #39ff14;
-  --danger: #ff2251;
-  --warn: #ffb300;
-  --ink: #0a0a0f;
-  --ink-2: #12121a;
-  --ink-3: #1c1c28;
-  --text: #e8e0f5;
-  --text-dim: #7a6e8e;
-  --border: rgba(138, 43, 226, 0.35);
+  --bv:        #8a2be2;
+  --bv-dark:   #5c1a9b;
+  --bv-glow:   rgba(138, 43, 226, 0.45);
+  --bv-dim:    rgba(138, 43, 226, 0.15);
+  --acid:      #39ff14;
+  --danger:    #ff2251;
+  --warn:      #ffb300;
+  --ink:       #0a0a0f;
+  --ink-2:     #12121a;
+  --ink-3:     #1c1c28;
+  --text:      #e8e0f5;
+  --text-dim:  #7a6e8e;
+  --border:    rgba(138, 43, 226, 0.35);
 
   --font: "JetBrains Mono", "Courier New", monospace;
-
   --transition: 180ms cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 /* ── 2. BASE ──────────────────────────────────────────── */
-html,
-body {
+html, body {
   height: 100%;
   font-family: var(--font);
-  background-color: blueviolet; /* colore base richiesto */
+  background-color: blueviolet;
   color: var(--text);
   overflow: hidden;
   -webkit-font-smoothing: antialiased;
@@ -65,14 +62,12 @@ body {
   position: fixed;
   inset: 0;
   z-index: 0;
-  /* Il JS disegna qui particelle e griglia — vedi login.js */
 }
 
 /* ── 4. SCANLINES OVERLAY ─────────────────────────────── */
 /*
   Effetto CRT: linee orizzontali semitrasparenti ripetute.
   pointer-events: none → non interferisce con i click.
-  mix-blend-mode: overlay → si fonde senza schiacciare i colori.
 */
 .scanlines {
   position: fixed;
@@ -103,11 +98,6 @@ body {
 }
 
 /* ── 6. CARD ──────────────────────────────────────────── */
-/*
-  Nessun border-radius tondo — spigoli vivi.
-  Bordo sottile viola con box-shadow a doppio livello:
-  uno interiore (inset) e uno esteriore per il "glow".
-*/
 .login-card {
   width: 100%;
   max-width: 420px;
@@ -119,8 +109,6 @@ body {
     inset 0 0 0 1px rgba(255, 255, 255, 0.03),
     0 0 40px var(--bv-glow),
     0 0 80px rgba(138, 43, 226, 0.1);
-
-  /* Angolo tagliato in alto a destra — dettaglio brutale */
   clip-path: polygon(0 0, calc(100% - 16px) 0, 100% 16px, 100% 100%, 0 100%);
   animation: card-in 0.6s cubic-bezier(0.16, 1, 0.3, 1) both;
 }
@@ -138,7 +126,7 @@ body {
   transform: rotate(45deg) translate(4px, 8px);
 }
 
-/* Linea verticale colorata a sinistra — accento di brand */
+/* Linea verticale viola a sinistra */
 .login-card::after {
   content: "";
   position: absolute;
@@ -177,21 +165,11 @@ body {
 }
 
 @keyframes spin-hex {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
 }
 
-/* ── GLITCH EFFECT sul titolo ──────────────────────────── */
-/*
-  Tecnica: due pseudo-elementi ::before / ::after
-  con clip-path animati in modo asincrono creano
-  l'illusione di "slicing" digitale.
-  data-text è letto via attr() per duplicare il testo.
-*/
+/* ── GLITCH EFFECT ─────────────────────────────────────── */
 .glitch {
   font-size: clamp(2rem, 8vw, 2.8rem);
   font-weight: 800;
@@ -223,54 +201,22 @@ body {
 }
 
 @keyframes glitch-main {
-  0%,
-  95%,
-  100% {
-    transform: none;
-  }
-  96% {
-    transform: translate(-1px, 0);
-  }
-  97% {
-    transform: translate(1px, 0);
-  }
-  98% {
-    transform: translate(-1px, 0);
-  }
+  0%, 95%, 100% { transform: none; }
+  96% { transform: translate(-1px, 0); }
+  97% { transform: translate( 1px, 0); }
+  98% { transform: translate(-1px, 0); }
 }
 
 @keyframes glitch-a {
-  0%,
-  95%,
-  100% {
-    transform: none;
-    opacity: 0;
-  }
-  96% {
-    transform: translate(-3px, 0);
-    opacity: 1;
-  }
-  98% {
-    transform: translate(3px, 0);
-    opacity: 1;
-  }
+  0%, 95%, 100% { transform: none; opacity: 0; }
+  96% { transform: translate(-3px, 0); opacity: 1; }
+  98% { transform: translate( 3px, 0); opacity: 1; }
 }
 
 @keyframes glitch-b {
-  0%,
-  95%,
-  100% {
-    transform: none;
-    opacity: 0;
-  }
-  97% {
-    transform: translate(2px, 1px);
-    opacity: 1;
-  }
-  99% {
-    transform: translate(-2px, -1px);
-    opacity: 1;
-  }
+  0%, 95%, 100% { transform: none; opacity: 0; }
+  97% { transform: translate( 2px,  1px); opacity: 1; }
+  99% { transform: translate(-2px, -1px); opacity: 1; }
 }
 
 .subtitle {
@@ -281,9 +227,7 @@ body {
 }
 
 /* ── 8. FORM ──────────────────────────────────────────── */
-.field-group {
-  margin-bottom: 1.2rem;
-}
+.field-group { margin-bottom: 1.2rem; }
 
 label {
   display: block;
@@ -319,7 +263,7 @@ input[type="password"] {
   font-size: 0.85rem;
   padding: 0.65rem 2.8rem 0.65rem 2rem;
   outline: none;
-  border-radius: 0; /* spigoli — niente morbidezza */
+  border-radius: 0;
   transition:
     border-color var(--transition),
     box-shadow var(--transition),
@@ -333,7 +277,6 @@ input[type="password"]::placeholder {
   opacity: 0.5;
 }
 
-/* Focus: bordo viola pieno + glow interno */
 input[type="text"]:focus,
 input[type="password"]:focus {
   border-color: var(--bv);
@@ -343,12 +286,11 @@ input[type="password"]:focus {
     inset 0 0 8px rgba(138, 43, 226, 0.1);
 }
 
-/* Input valido: sottile bordo verde acido */
 input:valid:not(:placeholder-shown) {
   border-color: rgba(57, 255, 20, 0.3);
 }
 
-/* Bottone toggle password */
+/* Toggle visibilità password */
 #toggle-pw {
   position: absolute;
   right: 0.6rem;
@@ -362,9 +304,7 @@ input:valid:not(:placeholder-shown) {
   line-height: 1;
 }
 
-#toggle-pw:hover {
-  opacity: 1;
-}
+#toggle-pw:hover { opacity: 1; }
 
 /* ── 9. CHECKBOX "Resta collegato" ────────────────────── */
 .remember-row {
@@ -385,7 +325,6 @@ input:valid:not(:placeholder-shown) {
   user-select: none;
 }
 
-/* Nasconde la checkbox nativa */
 .checkbox-label input[type="checkbox"] {
   position: absolute;
   opacity: 0;
@@ -393,7 +332,6 @@ input:valid:not(:placeholder-shown) {
   height: 0;
 }
 
-/* Checkmark custom quadrato — coerente con l'estetica */
 .checkmark {
   width: 14px;
   height: 14px;
@@ -421,9 +359,7 @@ input:valid:not(:placeholder-shown) {
   background: rgba(57, 255, 20, 0.08);
 }
 
-.checkbox-label input:checked ~ .checkmark::after {
-  opacity: 1;
-}
+.checkbox-label input:checked ~ .checkmark::after { opacity: 1; }
 
 .remember-hint {
   font-size: 0.55rem;
@@ -433,10 +369,6 @@ input:valid:not(:placeholder-shown) {
 }
 
 /* ── 10. MESSAGE BOX ──────────────────────────────────── */
-/*
-  Di default nascosto (height: 0, overflow: hidden).
-  Quando ha una classe .visible si apre con animazione.
-*/
 #message-box {
   font-size: 0.7rem;
   letter-spacing: 0.08em;
@@ -458,35 +390,19 @@ input:valid:not(:placeholder-shown) {
   margin-bottom: 1rem;
 }
 
-#message-box.error {
-  color: var(--danger);
-  border-color: var(--danger);
-  background: rgba(255, 34, 81, 0.07);
-}
-
-#message-box.success {
-  color: var(--acid);
-  border-color: var(--acid);
-  background: rgba(57, 255, 20, 0.05);
-}
-
-#message-box.warning {
-  color: var(--warn);
-  border-color: var(--warn);
-  background: rgba(255, 179, 0, 0.07);
-}
+#message-box.error   { color: var(--danger); border-color: var(--danger); background: rgba(255, 34, 81, 0.07); }
+#message-box.success { color: var(--acid);   border-color: var(--acid);   background: rgba(57, 255, 20, 0.05); }
+#message-box.warning { color: var(--warn);   border-color: var(--warn);   background: rgba(255, 179, 0, 0.07); }
 
 /* ── 11. LOCKOUT BAR ──────────────────────────────────── */
 #lockout-bar-wrap {
-  display: none; /* visibile via JS quando lockout attivo */
+  display: none;
   align-items: center;
   gap: 0.6rem;
   margin-bottom: 1rem;
 }
 
-#lockout-bar-wrap.active {
-  display: flex;
-}
+#lockout-bar-wrap.active { display: flex; }
 
 #lockout-bar {
   flex: 1;
@@ -500,8 +416,7 @@ input:valid:not(:placeholder-shown) {
 #lockout-bar::after {
   content: "";
   position: absolute;
-  left: 0;
-  top: 0;
+  left: 0; top: 0;
   height: 100%;
   width: var(--progress, 100%);
   background: var(--danger);
@@ -559,18 +474,9 @@ button[type="submit"]::before {
   transition: transform 0.5s ease;
 }
 
-button[type="submit"]:hover::before {
-  transform: translateX(100%);
-}
-
-button[type="submit"]:hover {
-  background: var(--bv-dark);
-  box-shadow: 0 0 20px var(--bv-glow);
-}
-
-button[type="submit"]:active {
-  transform: scale(0.98);
-}
+button[type="submit"]:hover::before { transform: translateX(100%); }
+button[type="submit"]:hover         { background: var(--bv-dark); box-shadow: 0 0 20px var(--bv-glow); }
+button[type="submit"]:active        { transform: scale(0.98); }
 
 button[type="submit"]:disabled {
   background: var(--ink-3);
@@ -580,17 +486,10 @@ button[type="submit"]:disabled {
   clip-path: none;
 }
 
-button[type="submit"]:disabled::before {
-  display: none;
-}
+button[type="submit"]:disabled::before { display: none; }
 
-.btn-arrow {
-  transition: transform var(--transition);
-}
-
-button[type="submit"]:hover .btn-arrow {
-  transform: translateX(4px);
-}
+.btn-arrow { transition: transform var(--transition); }
+button[type="submit"]:hover .btn-arrow { transform: translateX(4px); }
 
 /* ── 13. ATTEMPTS COUNTER ─────────────────────────────── */
 #attempts-counter {
@@ -611,42 +510,22 @@ button[type="submit"]:hover .btn-arrow {
   color: rgba(138, 43, 226, 0.5);
 }
 
-/* ── 15. SHAKE ANIMATION (input errati) ───────────────── */
-/*
-  Feedback visivo istantaneo: la card "scuote" lateralmente
-  quando le credenziali sono errate.
-  È più rapido e intuitivo di un semplice bordo rosso.
-*/
+/* ── 15. SHAKE ANIMATION ──────────────────────────────── */
 @keyframes shake {
-  0%,
-  100% {
-    transform: translateX(0);
-  }
-  15% {
-    transform: translateX(-6px);
-  }
-  30% {
-    transform: translateX(6px);
-  }
-  45% {
-    transform: translateX(-4px);
-  }
-  60% {
-    transform: translateX(4px);
-  }
-  75% {
-    transform: translateX(-2px);
-  }
-  90% {
-    transform: translateX(2px);
-  }
+  0%,  100% { transform: translateX(0); }
+  15%        { transform: translateX(-6px); }
+  30%        { transform: translateX( 6px); }
+  45%        { transform: translateX(-4px); }
+  60%        { transform: translateX( 4px); }
+  75%        { transform: translateX(-2px); }
+  90%        { transform: translateX( 2px); }
 }
 
 .shaking {
   animation: shake 0.45s cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
 }
 
-/* ── 16. FOCUS VISIBLE (accessibilità tastiera) ───────── */
+/* ── 16. FOCUS VISIBLE ────────────────────────────────── */
 *:focus-visible {
   outline: 2px solid var(--bv);
   outline-offset: 2px;
@@ -654,7 +533,5 @@ button[type="submit"]:hover .btn-arrow {
 
 /* ── 17. RESPONSIVE ───────────────────────────────────── */
 @media (max-width: 440px) {
-  .login-card {
-    padding: 2rem 1.25rem;
-  }
+  .login-card { padding: 2rem 1.25rem; }
 }

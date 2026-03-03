@@ -1,415 +1,247 @@
-/* ================================================================
-   TASK MANAGER — script.js
-   Architettura: Data Layer (array + localStorage) → Render (DOM)
-   ================================================================
+/**
+ * ============================================================
+ *  SCRIPT.JS — Task Manager + Protezione Accesso (Fase 3)
+ * ============================================================
+ *
+ *  STRUTTURA:
+ *   1. getCookie / deleteCookie  → leggere/cancellare cookie
+ *   2. Guardia accesso           → blocca chi non è loggato
+ *   3. Task Manager              → tutto il resto (solo se loggato)
+ *      ├─ loadTasks / saveTasks  → localStorage per-utente
+ *      ├─ render()               → lista o kanban
+ *      ├─ addTask / removeTask / updateStatus
+ *      ├─ filter + sort
+ *      ├─ layout switcher
+ *      ├─ session timer (PRO)
+ *      └─ logout
+ * ============================================================
+ */
 
-   FLUSSO GENERALE:
-   1. L'utente interagisce (click, cambio select, ecc.)
-   2. JS aggiorna l'ARRAY dei dati in memoria
-   3. JS salva l'array nel localStorage (persistenza)
-   4. JS chiama render() che svuota il DOM e lo ricostruisce
-      leggendo i dati aggiornati dall'array
+"use strict";
 
-   Principio chiave: il DOM è solo uno SPECCHIO dei dati.
-   Non è mai la fonte di verità.
-================================================================ */
+/* ══════════════════════════════════════════════════════════
+   1 — COOKIE UTILITIES
+   ══════════════════════════════════════════════════════════
 
-/* ----------------------------------------------------------------
-   COSTANTI
-   ---------------------------------------------------------------- */
+   document.cookie è una stringa unica separata da "; "
+   Es: "isLoggedIn=true; current_user=admin; auth_ticket=xyz"
+   Per leggere un valore dobbiamo spezzarla e cercare per nome.
+*/
 
-// Chiave usata per leggere/scrivere nel localStorage.
-// Centralizzarla evita errori di battitura (typo) sparsi nel codice.
-document.addEventListener("DOMContentLoaded", () => {
-  const STORAGE_KEY = "taskmanager_tasks";
+/**
+ * Legge il valore di un cookie per nome.
+ * @param {string} name
+ * @returns {string|null}
+ */
+function getCookie(name) {
+  const cookies = document.cookie.split("; ");
+  for (const cookie of cookies) {
+    const eqIdx = cookie.indexOf("=");
+    if (eqIdx === -1) continue;
+    const key = cookie.slice(0, eqIdx).trim();
+    const val = cookie.slice(eqIdx + 1);
+    if (key === name) return decodeURIComponent(val);
+  }
+  return null;
+}
 
-  /* ----------------------------------------------------------------
-   SELEZIONE ELEMENTI DAL DOM
-   ---------------------------------------------------------------- */
-  const taskInput = document.getElementById("taskInput");
-  const dateInput = document.getElementById("dateInput");
-  const addBtn = document.getElementById("addBtn");
-  const errorContainer = document.getElementById("errorContainer");
-  const taskCount = document.getElementById("taskCount");
-  const filterSelect = document.getElementById("filterSelect");
-  const sortSelect = document.getElementById("sortSelect");
-  const controlsBar = document.getElementById("controlsBar");
-  const listControls = document.getElementById("listControls");
-  const btnList = document.getElementById("btnList");
-  const btnKanban = document.getElementById("btnKanban");
-  const mainContainer = document.getElementById("mainContainer");
+/**
+ * Cancella un cookie impostandone la scadenza nel passato.
+ * Non esiste un comando "elimina cookie" in JS — questo è
+ * l'unico modo: il browser rimuove automaticamente i cookie
+ * scaduti.
+ * @param {string} name
+ */
+function deleteCookie(name) {
+  document.cookie =
+    name + "=; Expires=Thu, 01 Jan 1970 00:00:00 UTC; Path=/";
+}
 
-  /* ----------------------------------------------------------------
-   STATO DELL'APPLICAZIONE
-   currentLayout: 'list' | 'kanban'
-   Questa variabile è in memoria, non nel DOM né nel localStorage.
-   Si azzera ad ogni refresh (va bene per un layout switcher).
-   ---------------------------------------------------------------- */
-  let currentLayout = "list";
+/* ══════════════════════════════════════════════════════════
+   2 — TUTTO IL CODICE ASPETTA IL DOM
+   ══════════════════════════════════════════════════════════ */
 
-  /* ================================================================
-   STEP 1 — DATA LAYER: localStorage
-   Separare la lettura/scrittura dal resto del codice ci permette
-   di cambiare il sistema di persistenza (es. passare a un'API)
-   toccando solo queste due funzioni.
-================================================================ */
+document.addEventListener("DOMContentLoaded", function () {
 
-  /* ----------------------------------------------------------------
-   getTasks()
-   Legge la stringa JSON dal localStorage e la converte in array.
+  /* ── GUARDIA ACCESSO ────────────────────────────────────
+     Primo controllo: il cookie isLoggedIn esiste e vale "true"?
+     Se no → nascondi il body, mostra overlay, redirect dopo 2s.
+  */
+  if (getCookie("isLoggedIn") !== "true") {
 
-   Perché || [] ?
-   Se la chiave non esiste ancora (primo avvio), localStorage
-   restituisce null. JSON.parse(null) restituisce null, non [].
-   Con || [] garantiamo di restituire sempre un array valido.
-   ---------------------------------------------------------------- */
-  function getTasks() {
-    return JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
+    // Nascondi subito il contenuto (nessun "flash" dei task)
+    document.body.style.display = "none";
+
+    // Crea overlay "Accesso Negato" via createElement (no innerHTML)
+    const overlay = document.createElement("div");
+    overlay.style.cssText = [
+      "position:fixed", "inset:0", "background:#0a0a0f",
+      "display:flex", "flex-direction:column",
+      "align-items:center", "justify-content:center",
+      "font-family:monospace", "z-index:9999",
+    ].join(";");
+
+    const lockIcon = document.createElement("div");
+    lockIcon.style.cssText = "font-size:3.5rem; margin-bottom:1.2rem;";
+    lockIcon.textContent = "🔒";
+
+    const titleEl = document.createElement("div");
+    titleEl.style.cssText =
+      "font-size:1.5rem; color:#ff2251; letter-spacing:.2em; font-weight:700;";
+    titleEl.textContent = "ACCESSO NEGATO";
+
+    const subEl = document.createElement("div");
+    subEl.style.cssText =
+      "font-size:.85rem; color:#7a6e8e; margin-top:.8rem; letter-spacing:.05em;";
+
+    const counterSpan = document.createElement("span");
+    counterSpan.style.color = "#8a2be2";
+    counterSpan.textContent = "2";
+
+    subEl.appendChild(document.createTextNode("Reindirizzamento tra "));
+    subEl.appendChild(counterSpan);
+    subEl.appendChild(document.createTextNode("s..."));
+
+    overlay.appendChild(lockIcon);
+    overlay.appendChild(titleEl);
+    overlay.appendChild(subEl);
+    document.body.appendChild(overlay);
+
+    // Mostra solo l'overlay
+    document.body.style.display = "block";
+
+    // Countdown 2 secondi → redirect a login
+    let count = 2;
+    const tick = setInterval(function () {
+      count--;
+      counterSpan.textContent = count;
+      if (count <= 0) {
+        clearInterval(tick);
+        window.location.href = "login.html";
+      }
+    }, 1000);
+
+    return; // ferma tutta l'esecuzione successiva
   }
 
-  /* ----------------------------------------------------------------
-   saveTasks(tasks)
-   Converte l'array in stringa JSON e la scrive nel localStorage.
-   Chiamata OGNI VOLTA che i dati cambiano (aggiunta, modifica,
-   eliminazione) prima di richiamare render().
-   ---------------------------------------------------------------- */
-  function saveTasks(tasks) {
+  /* ══════════════════════════════════════════════════════
+     3 — TASK MANAGER (eseguito SOLO se autenticato)
+     ══════════════════════════════════════════════════════ */
+
+  /* ── USERNAME + CHIAVE LOCALSTORAGE PER-UTENTE (PRO) ──
+     Ogni utente ha la sua chiave separata:
+       admin  → "tasks_admin"
+       grant  → "tasks_grant"
+     Così due utenti diversi non vedono i task dell'altro.
+  */
+  const currentUser = getCookie("current_user") || "utente";
+  const STORAGE_KEY = "tasks_" + currentUser;
+
+  // Stato applicazione
+  let tasks         = [];
+  let currentLayout = "list";    // "list" | "kanban"
+  let currentFilter = "all";     // "all" | "todo" | "doing" | "done"
+  let currentSort   = "none";    // "none" | "date" | "status"
+
+  /* ── RIFERIMENTI DOM ──────────────────────────────────── */
+  const taskInput      = document.getElementById("taskInput");
+  const dateInput      = document.getElementById("dateInput");
+  const addBtn         = document.getElementById("addBtn");
+  const errorContainer = document.getElementById("errorContainer");
+  const mainContainer  = document.getElementById("mainContainer");
+  const taskCountEl    = document.getElementById("taskCount");
+  const controlsBar    = document.getElementById("controlsBar");
+  const listControls   = document.getElementById("listControls");
+  const filterSelect   = document.getElementById("filterSelect");
+  const sortSelect     = document.getElementById("sortSelect");
+  const btnList        = document.getElementById("btnList");
+  const btnKanban      = document.getElementById("btnKanban");
+  const logoutBtn      = document.getElementById("logout-btn");
+  const sessionTimerEl = document.getElementById("session-timer");
+  const greetingEl     = document.getElementById("user-greeting");
+
+  /* ── LOCALSTORAGE ─────────────────────────────────────── */
+
+  function loadTasks() {
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      return raw ? JSON.parse(raw) : [];
+    } catch (_) {
+      return [];
+    }
+  }
+
+  function saveTasks() {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(tasks));
   }
 
-  /* ----------------------------------------------------------------
-   generateId()
-   Genera un ID numerico unico basandosi sul timestamp corrente.
-   Date.now() restituisce i millisecondi dall'Epoch Unix:
-   praticamente impossibile avere due ID uguali in uso normale.
-   ---------------------------------------------------------------- */
-  function generateId() {
-    return Date.now();
-  }
+  /* ── RENDER ───────────────────────────────────────────── */
 
-  /* ================================================================
-   UTILITY: messaggi di errore
-================================================================ */
-
-  function showError(message) {
-    while (errorContainer.firstChild) {
-      errorContainer.removeChild(errorContainer.firstChild);
-    }
-    const p = document.createElement("p");
-    p.textContent = message;
-    p.classList.add("error-message");
-    errorContainer.appendChild(p);
-  }
-
-  function clearError() {
-    while (errorContainer.firstChild) {
-      errorContainer.removeChild(errorContainer.firstChild);
-    }
-  }
-
-  /* ================================================================
-   CREAZIONE ELEMENTO TASK
-   Funzione riutilizzata sia da renderList() che da renderKanban().
-   Riceve un oggetto task e restituisce un elemento <li> completo.
-================================================================ */
-
-  /* ----------------------------------------------------------------
-   buildTaskElement(task)
-   Costruisce e restituisce un <li> per un singolo task.
-   Incapsula tutta la logica di creazione DOM di un task,
-   così renderList e renderKanban non la duplicano.
-
-   IMPORTANTE: usa task.id per impostare dataset.id sul nodo.
-   Questo attributo data-id è il "ponte" tra DOM e array:
-   quando l'utente modifica o elimina, leggiamo dataset.id
-   per trovare l'oggetto corrispondente nell'array.
-   ---------------------------------------------------------------- */
-  function buildTaskElement(task) {
-    /* --- Contenitore li --- */
-    const li = document.createElement("li");
-    li.classList.add("task-item", `status-${task.status}`);
-
-    // dataset.id collega questo nodo DOM all'oggetto nell'array.
-    // Sarà letto come stringa, quindi nelle ricerche usiamo ==
-    // oppure convertiamo con Number().
-    li.dataset.id = task.id;
-
-    /* --- Testo del task --- */
-    const taskSpan = document.createElement("span");
-    taskSpan.textContent = task.title;
-    taskSpan.classList.add("task-text");
-
-    /* --- Data di scadenza --- */
-    const dateSpan = document.createElement("span");
-    dateSpan.classList.add("task-date");
-    if (task.date) {
-      const d = new Date(task.date + "T00:00:00");
-      dateSpan.textContent =
-        "📅 " +
-        d.toLocaleDateString("it-IT", {
-          day: "2-digit",
-          month: "2-digit",
-          year: "numeric",
-        });
-    } else {
-      dateSpan.textContent = "—";
-    }
-
-    /* --- Select per lo stato --- */
-    const statusSelect = document.createElement("select");
-    statusSelect.classList.add("status-select");
-
-    // Mappa: valore → etichetta leggibile
-    const statusOptions = [
-      { value: "todo", label: "Da fare" },
-      { value: "doing", label: "In corso" },
-      { value: "done", label: "Completato" },
-    ];
-
-    statusOptions.forEach(function (opt) {
-      const option = document.createElement("option");
-      option.value = opt.value;
-      option.textContent = opt.label;
-      // Preseleziona l'opzione corrispondente allo stato attuale
-      if (opt.value === task.status) {
-        option.selected = true;
-      }
-      statusSelect.appendChild(option);
-    });
-
-    /*
-    STEP 2 — Cambio stato:
-    Quando la select cambia:
-    1. Leggiamo l'id dal dataset del li padre
-    2. Troviamo l'oggetto nell'array con .find()
-    3. Aggiorniamo task.status
-    4. Salviamo nel localStorage
-    5. Ri-eseguiamo render() → il DOM si aggiorna
-  */
-    statusSelect.addEventListener("change", function () {
-      const id = Number(li.dataset.id); // dataset restituisce stringa → convertiamo
-      const tasks = getTasks();
-      const taskObj = tasks.find(function (t) {
-        return t.id === id;
-      });
-
-      if (taskObj) {
-        taskObj.status = statusSelect.value; // modifica l'oggetto nell'array
-        saveTasks(tasks); // persiste l'array aggiornato
-        render(); // ridisegna il DOM dai dati
-      }
-    });
-
-    /* --- Pulsante Rimuovi --- */
-    const removeBtn = document.createElement("button");
-    removeBtn.textContent = "Rimuovi";
-    removeBtn.classList.add("btn", "btn-remove");
-
-    removeBtn.addEventListener("click", function () {
-      const id = Number(li.dataset.id);
-      let tasks = getTasks();
-      // .filter() crea un NUOVO array senza il task eliminato
-      tasks = tasks.filter(function (t) {
-        return t.id !== id;
-      });
-      saveTasks(tasks);
-      render();
-    });
-
-    /* --- Assemblaggio --- */
-    li.appendChild(taskSpan);
-    li.appendChild(dateSpan);
-    li.appendChild(statusSelect);
-    li.appendChild(removeBtn);
-
-    return li;
-  }
-
-  /* ================================================================
-   STEP 3 — RENDERING
-   Due funzioni di visualizzazione che leggono gli stessi dati
-   e li mostrano in modo diverso.
-================================================================ */
-
-  /* ----------------------------------------------------------------
-   renderList(tasks)
-   Crea un <ul> con tutti i task in ordine.
-   Applica filtro e ordinamento leggendo i select della barra
-   controlli.
-   ---------------------------------------------------------------- */
-  function renderList(tasks) {
-    /* --- Filtro --- */
-    const filter = filterSelect.value; // 'all' | 'todo' | 'doing' | 'done'
-    let filtered = tasks;
-
-    if (filter !== "all") {
-      filtered = tasks.filter(function (t) {
-        return t.status === filter;
-      });
-    }
-
-    /* --- Ordinamento --- */
-    const sort = sortSelect.value; // 'none' | 'date' | 'status'
-
-    if (sort === "date") {
-      filtered = filtered.slice().sort(function (a, b) {
-        // I task senza data vanno in fondo
-        const da = a.date || "9999-99-99";
-        const db = b.date || "9999-99-99";
-        if (da < db) return -1;
-        if (da > db) return 1;
-        return 0;
-      });
-    }
-
-    if (sort === "status") {
-      // Ordine: todo → doing → done
-      const order = { todo: 0, doing: 1, done: 2 };
-      filtered = filtered.slice().sort(function (a, b) {
-        return order[a.status] - order[b.status];
-      });
-    }
-
-    /* --- Costruzione ul --- */
-    const ul = document.createElement("ul");
-    ul.classList.add("task-list");
-
-    if (filtered.length === 0) {
-      // Mostriamo un messaggio se non ci sono task (o il filtro è vuoto)
-      const empty = document.createElement("div");
-      empty.classList.add("empty-state");
-      empty.textContent =
-        filter === "all"
-          ? "Nessun task. Aggiungine uno!"
-          : "Nessun task corrisponde al filtro.";
-      mainContainer.appendChild(empty);
-      return; // non aggiungiamo la ul
-    }
-
-    filtered.forEach(function (task) {
-      ul.appendChild(buildTaskElement(task));
-    });
-
-    mainContainer.appendChild(ul);
-  }
-
-  /* ----------------------------------------------------------------
-   renderKanban(tasks)
-   Crea 3 colonne affiancate.
-   Usa .filter() per distribuire i task nelle colonne giuste.
-
-   La logica è chiara: una colonna per stato, filter() seleziona
-   solo i task con quello status.
-   ---------------------------------------------------------------- */
-  function renderKanban(tasks) {
-    const columns = [
-      { status: "todo", label: "Da fare" },
-      { status: "doing", label: "In corso" },
-      { status: "done", label: "Completato" },
-    ];
-
-    /* --- Wrapper a 3 colonne --- */
-    const board = document.createElement("div");
-    board.classList.add("kanban-board");
-
-    columns.forEach(function (col) {
-      /* --- Filtra i task per questa colonna --- */
-      const colTasks = tasks.filter(function (t) {
-        return t.status === col.status;
-      });
-
-      /* --- Colonna --- */
-      const colEl = document.createElement("div");
-      colEl.classList.add("kanban-col");
-      colEl.dataset.status = col.status; // usato dal CSS per colorare l'header
-
-      /* --- Header colonna con etichetta e contatore --- */
-      const header = document.createElement("div");
-      header.classList.add("kanban-col-header");
-
-      const headerLabel = document.createElement("span");
-      headerLabel.textContent = col.label;
-
-      const headerCount = document.createElement("span");
-      headerCount.classList.add("kanban-col-count");
-      headerCount.textContent = colTasks.length;
-
-      header.appendChild(headerLabel);
-      header.appendChild(headerCount);
-
-      /* --- Body colonna: lista task --- */
-      const body = document.createElement("div");
-      body.classList.add("kanban-col-body");
-
-      if (colTasks.length === 0) {
-        const emptyMsg = document.createElement("p");
-        emptyMsg.classList.add("kanban-empty");
-        emptyMsg.textContent = "Nessun task";
-        body.appendChild(emptyMsg);
-      } else {
-        colTasks.forEach(function (task) {
-          body.appendChild(buildTaskElement(task));
-        });
-      }
-
-      /* --- Assemblaggio colonna --- */
-      colEl.appendChild(header);
-      colEl.appendChild(body);
-      board.appendChild(colEl);
-    });
-
-    mainContainer.appendChild(board);
-  }
-
-  /* ----------------------------------------------------------------
-   render()
-   Funzione "orchestratore" centrale.
-   Legge l'array dal localStorage, svuota il contenitore
-   e chiama la funzione di visualizzazione corretta.
-
-   Perché innerHTML = '' per svuotare?
-   È il metodo più diretto per azzerare completamente un
-   contenitore prima di ridisegnarlo. I vecchi nodi non
-   ci servono più: vengono rimpiazzati dai nuovi basati
-   sui dati aggiornati. (Come da suggerimento dell'esercizio.)
-   ---------------------------------------------------------------- */
   function render() {
-    const tasks = getTasks();
-
-    /* --- Svuota il contenitore --- */
+    // Svuota il contenitore principale
     mainContainer.innerHTML = "";
 
-    /* --- Aggiorna il contatore nell'header --- */
-    // Legge tasks.length dall'array, non dal DOM: la fonte di verità
-    // sono i dati, non il numero di elementi visibili.
-    taskCount.textContent =
-      tasks.length === 1 ? "1 task" : `${tasks.length} task`;
+    // Aggiorna contatore
+    taskCountEl.textContent = tasks.length + " task";
 
-    /* --- Mostra/nascondi barra controlli --- */
-    if (tasks.length === 0) {
-      controlsBar.classList.add("hidden");
-    } else {
+    // Mostra/nascondi barra controlli
+    if (tasks.length > 0) {
       controlsBar.classList.remove("hidden");
-    }
-
-    /* --- Mostra/nascondi filtri (solo in vista lista) --- */
-    if (currentLayout === "kanban") {
-      listControls.classList.add("hidden");
     } else {
-      listControls.classList.remove("hidden");
+      controlsBar.classList.add("hidden");
     }
 
-    /* --- Caso speciale: nessun task nel sistema --- */
-    if (tasks.length === 0) {
+    // In modalità kanban, nascondi filtro/ordine (le colonne già mostrano lo stato)
+    if (listControls) {
+      if (currentLayout === "kanban") {
+        listControls.classList.add("hidden");
+      } else {
+        listControls.classList.remove("hidden");
+      }
+    }
+
+    // Applica filtro e ordinamento (solo per vista lista)
+    let filtered = tasks.slice(); // copia
+
+    if (currentFilter !== "all") {
+      filtered = filtered.filter(function (t) {
+        return t.status === currentFilter;
+      });
+    }
+
+    if (currentSort === "date") {
+      filtered.sort(function (a, b) {
+        return (a.date || "").localeCompare(b.date || "");
+      });
+    } else if (currentSort === "status") {
+      const order = { todo: 0, doing: 1, done: 2 };
+      filtered.sort(function (a, b) {
+        return (order[a.status] || 0) - (order[b.status] || 0);
+      });
+    }
+
+    if (currentLayout === "list") {
+      renderList(filtered);
+    } else {
+      renderKanban();
+    }
+  }
+
+  /* ── VISTA LISTA ──────────────────────────────────────── */
+
+  function renderList(filtered) {
+    if (filtered.length === 0) {
       const empty = document.createElement("div");
-      empty.classList.add("empty-state");
+      empty.className = "empty-state";
 
       const icon = document.createElement("span");
-      icon.classList.add("empty-icon");
-      icon.textContent = "○";
+      icon.className = "empty-icon";
+      icon.textContent = "✓";
 
       const msg = document.createElement("p");
-      msg.textContent = "Nessun task. Aggiungine uno!";
+      msg.textContent = tasks.length === 0
+        ? "Nessun task ancora. Aggiungine uno!"
+        : "Nessun task corrisponde al filtro selezionato.";
 
       empty.appendChild(icon);
       empty.appendChild(msg);
@@ -417,102 +249,319 @@ document.addEventListener("DOMContentLoaded", () => {
       return;
     }
 
-    /* --- Chiama la visualizzazione corretta --- */
-    if (currentLayout === "kanban") {
-      renderKanban(tasks);
-    } else {
-      renderList(tasks);
-    }
+    const ul = document.createElement("ul");
+    ul.className = "task-list";
+
+    filtered.forEach(function (task) {
+      ul.appendChild(createTaskItem(task, "list"));
+    });
+
+    mainContainer.appendChild(ul);
   }
 
-  /* ================================================================
-   STEP 1 — AGGIUNTA TASK
-   Legge input → valida → crea oggetto → aggiorna array →
-   salva → render()
-================================================================ */
+  /* ── VISTA KANBAN ─────────────────────────────────────── */
+
+  function renderKanban() {
+    /*
+     * Il kanban usa SEMPRE tutti i task (non il filtered)
+     * e li divide in tre colonne per stato.
+     * Il filtro e l'ordinamento non si applicano al kanban
+     * perché le colonne già organizzano per stato.
+     */
+    const columns = [
+      { status: "todo",  label: "Da fare",    icon: "○" },
+      { status: "doing", label: "In corso",   icon: "◑" },
+      { status: "done",  label: "Completato", icon: "●" },
+    ];
+
+    const board = document.createElement("div");
+    board.className = "kanban-board";
+
+    columns.forEach(function (col) {
+      const colTasks = tasks.filter(function (t) {
+        return t.status === col.status;
+      });
+
+      const colEl = document.createElement("div");
+      colEl.className = "kanban-col";
+      colEl.dataset.status = col.status;
+
+      // Header
+      const header = document.createElement("div");
+      header.className = "kanban-col-header";
+
+      const headerTitle = document.createElement("span");
+      headerTitle.textContent = col.icon + " " + col.label;
+      header.appendChild(headerTitle);
+
+      const badge = document.createElement("span");
+      badge.className = "kanban-col-count";
+      badge.textContent = colTasks.length;
+      header.appendChild(badge);
+
+      colEl.appendChild(header);
+
+      // Body
+      const body = document.createElement("div");
+      body.className = "kanban-col-body";
+
+      if (colTasks.length === 0) {
+        const emptyMsg = document.createElement("p");
+        emptyMsg.className = "kanban-empty";
+        emptyMsg.textContent = "Nessun task";
+        body.appendChild(emptyMsg);
+      } else {
+        colTasks.forEach(function (task) {
+          body.appendChild(createTaskItem(task, "kanban"));
+        });
+      }
+
+      colEl.appendChild(body);
+      board.appendChild(colEl);
+    });
+
+    mainContainer.appendChild(board);
+  }
+
+  /* ── CREA ELEMENTO TASK ───────────────────────────────── */
+
+  function createTaskItem(task, layout) {
+    /*
+     * Usiamo createElement per ogni elemento (no innerHTML).
+     * dataset.id collega l'elemento HTML all'oggetto nel array.
+     */
+    const item = layout === "list"
+      ? document.createElement("li")
+      : document.createElement("div");
+
+    item.className = "task-item status-" + task.status;
+    item.dataset.id = task.id;
+
+    // Testo task
+    const textEl = document.createElement("span");
+    textEl.className = "task-text";
+    textEl.textContent = task.title;
+    item.appendChild(textEl);
+
+    // Data scadenza
+    const dateEl = document.createElement("span");
+    dateEl.className = "task-date";
+    dateEl.textContent = formatDate(task.date);
+    item.appendChild(dateEl);
+
+    // Select stato (Da fare / In corso / Completato)
+    const select = document.createElement("select");
+    select.className = "status-select";
+
+    const statuses = [
+      { value: "todo",  label: "Da fare"    },
+      { value: "doing", label: "In corso"   },
+      { value: "done",  label: "Completato" },
+    ];
+
+    statuses.forEach(function (s) {
+      const opt = document.createElement("option");
+      opt.value = s.value;
+      opt.textContent = s.label;
+      if (s.value === task.status) opt.selected = true;
+      select.appendChild(opt);
+    });
+
+    select.addEventListener("change", function () {
+      updateStatus(task.id, this.value);
+    });
+
+    item.appendChild(select);
+
+    // Bottone Rimuovi
+    const removeBtn = document.createElement("button");
+    removeBtn.className = "btn-remove";
+    removeBtn.textContent = "Rimuovi";
+    removeBtn.addEventListener("click", function () {
+      removeTask(task.id);
+    });
+
+    item.appendChild(removeBtn);
+    return item;
+  }
+
+  /* ── OPERAZIONI SUI TASK ──────────────────────────────── */
 
   function addTask() {
-    const title = taskInput.value.trim();
-    const dateValue = dateInput.value;
-
-    /* --- Validazione 1: testo obbligatorio --- */
-    if (title === "") {
-      showError("⚠ Il nome del task non può essere vuoto.");
-      return;
-    }
-
-    /* --- Validazione 2: data OBBLIGATORIA ---
-     La data è richiesta. Se manca:
-     - mostriamo il messaggio di errore
-     - aggiungiamo la classe .input-error sull'input (bordo rosso via CSS)
-     - spostiamo il focus sull'input data
-     La classe viene rimossa a validazione superata (clearError + rimozione). */
-    if (dateValue === "") {
-      showError("⚠ La data di scadenza è obbligatoria.");
-      dateInput.classList.add("input-error");
-      dateInput.focus();
-      return;
-    }
-
-    /* --- Validazione 3: data non nel passato --- */
-    const scadenza = new Date(dateValue + "T00:00:00");
-    const oggi = new Date();
-    oggi.setHours(0, 0, 0, 0);
-    if (scadenza < oggi) {
-      showError("⚠ La data di scadenza non può essere nel passato.");
-      dateInput.classList.add("input-error");
-      dateInput.focus();
-      return;
-    }
-
-    /* Validazione superata: rimuoviamo stili di errore */
     clearError();
-    dateInput.classList.remove("input-error");
 
-    /* --- Crea l'oggetto task --- */
-    // Struttura: { id, title, status, date }
-    const newTask = {
-      id: generateId(),
-      title: title,
-      status: "todo", // stato iniziale sempre "da fare"
-      date: dateValue, // stringa 'YYYY-MM-DD' o '' se non inserita
-    };
+    const title = taskInput.value.trim();
+    const date  = dateInput.value;
 
-    /* --- Carica array esistente, aggiunge il nuovo task, salva --- */
-    const tasks = getTasks();
-    tasks.push(newTask);
-    saveTasks(tasks);
+    if (!title) {
+      showError("Inserisci il nome del task.");
+      taskInput.focus();
+      return;
+    }
 
-    /* --- Ridisegna il DOM --- */
-    render();
+    if (!date) {
+      showError("Seleziona una data di scadenza.");
+      dateInput.classList.add("input-error");
+      dateInput.focus();
+      return;
+    }
 
-    /* --- Pulizia input --- */
+    // Confronta con la data odierna (formato YYYY-MM-DD)
+    const today = new Date().toISOString().split("T")[0];
+    if (date < today) {
+      showError("La data non può essere nel passato.");
+      dateInput.classList.add("input-error");
+      return;
+    }
+
+    // Crea l'oggetto task e aggiungilo all'array
+    tasks.push({
+      id:     Date.now(), // timestamp come ID univoco
+      title:  title,
+      date:   date,
+      status: "todo",
+    });
+
+    saveTasks();
+
     taskInput.value = "";
     dateInput.value = "";
     taskInput.focus();
+
+    render();
   }
 
-  /* ================================================================
-   EVENT LISTENERS
-================================================================ */
+  function removeTask(id) {
+    tasks = tasks.filter(function (t) { return t.id !== id; });
+    saveTasks();
+    render();
+  }
 
-  // Aggiunta task
+  function updateStatus(id, newStatus) {
+    /*
+     * Troviamo l'oggetto tramite id (letto da dataset.id nell'HTML).
+     * Aggiorniamo solo la proprietà status, poi salviamo e ri-renderizziamo.
+     */
+    const task = tasks.find(function (t) { return t.id === id; });
+    if (!task) return;
+    task.status = newStatus;
+    saveTasks();
+    render();
+  }
+
+  /* ── GESTIONE ERRORI ──────────────────────────────────── */
+
+  function showError(msg) {
+    clearError();
+    const div = document.createElement("div");
+    div.className = "error-message";
+    const icon = document.createElement("span");
+    icon.textContent = "⚠ ";
+    div.appendChild(icon);
+    div.appendChild(document.createTextNode(msg));
+    errorContainer.appendChild(div);
+  }
+
+  function clearError() {
+    while (errorContainer.firstChild) {
+      errorContainer.removeChild(errorContainer.firstChild);
+    }
+    dateInput.classList.remove("input-error");
+  }
+
+  /* ── FORMATTAZIONE DATA ───────────────────────────────── */
+
+  function formatDate(dateStr) {
+    if (!dateStr) return "";
+    const parts = dateStr.split("-"); // ["2025", "12", "31"]
+    return parts[2] + "/" + parts[1] + "/" + parts[0]; // "31/12/2025"
+  }
+
+  /* ── SESSION TIMER (PRO) ──────────────────────────────── */
+
+  function initSessionTimer() {
+    if (!sessionTimerEl) return;
+
+    /*
+     * Al login, login.js ha scritto session_expires = timestamp ms.
+     * Calcoliamo la differenza con Date.now() ogni secondo.
+     * Quando scade → logout automatico.
+     */
+    const expiresAt = parseInt(getCookie("session_expires") || "0", 10);
+
+    if (!expiresAt) {
+      sessionTimerEl.textContent = "";
+      return;
+    }
+
+    function tick() {
+      const remaining = expiresAt - Date.now();
+
+      if (remaining <= 0) {
+        logout();
+        return;
+      }
+
+      const totalSec = Math.floor(remaining / 1000);
+      const h = Math.floor(totalSec / 3600);
+      const m = Math.floor((totalSec % 3600) / 60);
+      const s = totalSec % 60;
+
+      const display = h > 0
+        ? h + "h " + String(m).padStart(2, "0") + "m"
+        : m + "m " + String(s).padStart(2, "0") + "s";
+
+      sessionTimerEl.textContent = "⏱ " + display;
+
+      // Warning rosso quando mancano meno di 5 minuti
+      if (remaining < 5 * 60 * 1000) {
+        sessionTimerEl.classList.add("timer-warning");
+      } else {
+        sessionTimerEl.classList.remove("timer-warning");
+      }
+    }
+
+    tick();
+    setInterval(tick, 1000);
+  }
+
+  /* ── LOGOUT ───────────────────────────────────────────── */
+
+  function logout() {
+    /*
+     * Cancelliamo tutti i cookie di sessione.
+     * NON cancelliamo il localStorage: i task rimangono salvati
+     * e l'utente li ritrova al prossimo login.
+     */
+    deleteCookie("isLoggedIn");
+    deleteCookie("current_user");
+    deleteCookie("session_expires");
+    deleteCookie("auth_ticket");
+    window.location.href = "login.html";
+  }
+
+  /* ── EVENT LISTENERS ──────────────────────────────────── */
+
   addBtn.addEventListener("click", addTask);
 
   taskInput.addEventListener("keydown", function (e) {
     if (e.key === "Enter") addTask();
   });
 
-  // Filtro e ordinamento → aggiornano la vista lista
-  filterSelect.addEventListener("change", render);
-  sortSelect.addEventListener("change", render);
+  if (filterSelect) {
+    filterSelect.addEventListener("change", function () {
+      currentFilter = this.value;
+      render();
+    });
+  }
 
-  /*
-  Layout switcher:
-  Cambiano currentLayout e aggiornano le classi .active
-  sui pulsanti, poi chiamano render().
-  I DATI non vengono toccati.
-*/
+  if (sortSelect) {
+    sortSelect.addEventListener("change", function () {
+      currentSort = this.value;
+      render();
+    });
+  }
+
   btnList.addEventListener("click", function () {
     currentLayout = "list";
     btnList.classList.add("active");
@@ -527,10 +576,21 @@ document.addEventListener("DOMContentLoaded", () => {
     render();
   });
 
-  /* ================================================================
-   AVVIO APPLICAZIONE
-   Chiamiamo render() subito: se nel localStorage ci sono task
-   salvati da sessioni precedenti, vengono mostrati immediatamente.
-================================================================ */
+  if (logoutBtn) {
+    logoutBtn.addEventListener("click", logout);
+  }
+
+  /* ── INIT ─────────────────────────────────────────────── */
+
+  // Saluto personalizzato (usa l'username dal cookie)
+  if (greetingEl) {
+    greetingEl.textContent = "Ciao, " + currentUser;
+  }
+
+  // Carica task dal localStorage e renderizza
+  tasks = loadTasks();
   render();
+
+  // Avvia il session timer
+  initSessionTimer();
 });

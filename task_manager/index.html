@@ -10,20 +10,32 @@
       rel="stylesheet"
     />
     <link rel="stylesheet" href="css/style.css" />
-    <script src="js/script.js"></script>
   </head>
   <body>
     <div class="app-wrapper">
       <div class="card">
+
         <!-- ===== INTESTAZIONE ===== -->
         <div class="card-header">
           <div class="header-icon">✦</div>
           <h1>Le mie attività</h1>
           <!--
-          taskCount: aggiornato da JS leggendo tasks.length nell'array,
-          NON contando i <li> del DOM. Fonte di verità = i dati.
-        -->
+            taskCount: aggiornato da JS leggendo tasks.length,
+            NON contando i <li> del DOM. Fonte di verità = i dati.
+          -->
           <p id="taskCount" class="task-count">0 task</p>
+
+          <!--
+            Lato destro dell'header:
+            - saluto personalizzato (popolato da JS con il cookie current_user)
+            - session timer (countdown dinamico)
+            - bottone logout (cancella i cookie e torna al login)
+          -->
+          <div class="header-right">
+            <span id="user-greeting" class="user-greeting"></span>
+            <div id="session-timer" class="session-timer"></div>
+            <button id="logout-btn" class="btn-logout">↩ Logout</button>
+          </div>
         </div>
 
         <!-- ===== FORM DI INPUT ===== -->
@@ -44,16 +56,17 @@
           </button>
         </div>
 
-        <!-- Contenitore errori (popolato da JS) -->
+        <!-- Contenitore errori (popolato da JS via createElement) -->
         <div id="errorContainer" class="error-container"></div>
 
         <!-- ===== BARRA CONTROLLI ===== -->
-        <div class="controls-bar hidden" id="controlsBar">
-          <!--
-          Filtro e ordinamento: visibili solo in vista Lista.
-          JS aggiunge/rimuove la classe .hidden su questo div
-          quando si cambia layout.
+        <!--
+          Visibile solo quando ci sono task.
+          In vista Kanban, il blocco #listControls (filtro/ordine)
+          viene nascosto da JS perché le colonne già organizzano per stato.
         -->
+        <div class="controls-bar hidden" id="controlsBar">
+
           <div class="controls-left" id="listControls">
             <div class="controls-group">
               <label for="filterSelect" class="controls-label">Mostra</label>
@@ -75,10 +88,10 @@
           </div>
 
           <!--
-          Layout Switcher: i due pulsanti NON toccano i dati.
-          Cambiano solo la variabile currentLayout e rilanciano
-          render(), che legge gli stessi dati e li mostra diversamente.
-        -->
+            Layout Switcher: cambia solo la visualizzazione,
+            non i dati. Il bottone attivo ha classe .active.
+            JS aggiorna questa classe al click.
+          -->
           <div class="layout-switcher">
             <button id="btnList" class="btn-layout active" title="Vista Lista">
               ☰ Lista
@@ -90,15 +103,22 @@
         </div>
 
         <!--
-        ===== CONTENITORE PRINCIPALE DI RENDERING =====
-        Questo div è il "canvas" dell'applicazione.
-        La funzione render() lo svuota con innerHTML = ''
-        e lo ricrea ogni volta da zero, sia in modalità Lista
-        che in modalità Kanban.
-        L'HTML al suo interno non va mai scritto a mano.
-      -->
+          ===== CONTENITORE PRINCIPALE DI RENDERING =====
+          render() svuota questo div (innerHTML = '')
+          e lo ricrea da zero, sia in lista che in kanban.
+          L'HTML interno non va mai scritto a mano.
+        -->
         <div id="mainContainer"></div>
+
       </div>
     </div>
+
+    <!--
+      Script in fondo al body: il DOM è già costruito quando
+      il JS viene eseguito → nessun bisogno di defer.
+      La guardia accesso (getCookie) e tutto il resto
+      sono dentro DOMContentLoaded in script.js.
+    -->
+    <script src="js/script.js"></script>
   </body>
 </html>
