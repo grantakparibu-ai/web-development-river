@@ -1,124 +1,127 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="it">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Task Manager</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link
-      href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=DM+Mono:wght@400;500&display=swap"
-      rel="stylesheet"
-    />
-    <link rel="stylesheet" href="css/style.css" />
-  </head>
-  <body>
-    <div class="app-wrapper">
-      <div class="card">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>TaskFlow — Le mie attività</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/index.css" />
+</head>
+<body>
 
-        <!-- ===== INTESTAZIONE ===== -->
-        <div class="card-header">
-          <div class="header-icon">✦</div>
-          <h1>Le mie attività</h1>
-          <!--
-            taskCount: aggiornato da JS leggendo tasks.length,
-            NON contando i <li> del DOM. Fonte di verità = i dati.
-          -->
-          <p id="taskCount" class="task-count">0 task</p>
+  <!-- Schermata di accesso negato (hidden di default) -->
+  <div id="access-denied" class="access-denied hidden">
+    <span class="ad-icon">⊘</span>
+    <h2>Accesso negato</h2>
+    <p>Reindirizzamento al login...</p>
+  </div>
 
-          <!--
-            Lato destro dell'header:
-            - saluto personalizzato (popolato da JS con il cookie current_user)
-            - session timer (countdown dinamico)
-            - bottone logout (cancella i cookie e torna al login)
-          -->
-          <div class="header-right">
-            <span id="user-greeting" class="user-greeting"></span>
-            <div id="session-timer" class="session-timer"></div>
-            <button id="logout-btn" class="btn-logout">↩ Logout</button>
-          </div>
-        </div>
+  <!-- App principale -->
+  <div id="app">
 
-        <!-- ===== FORM DI INPUT ===== -->
-        <div class="input-section">
-          <div class="input-row">
-            <input
-              type="text"
-              id="taskInput"
-              class="input-text"
-              placeholder="Nome del task..."
-              autocomplete="off"
-            />
-            <input type="date" id="dateInput" class="input-date" />
-          </div>
-          <button id="addBtn" class="btn btn-primary">
-            <span class="btn-icon">+</span>
-            Aggiungi task
-          </button>
-        </div>
-
-        <!-- Contenitore errori (popolato da JS via createElement) -->
-        <div id="errorContainer" class="error-container"></div>
-
-        <!-- ===== BARRA CONTROLLI ===== -->
-        <!--
-          Visibile solo quando ci sono task.
-          In vista Kanban, il blocco #listControls (filtro/ordine)
-          viene nascosto da JS perché le colonne già organizzano per stato.
-        -->
-        <div class="controls-bar hidden" id="controlsBar">
-
-          <div class="controls-left" id="listControls">
-            <div class="controls-group">
-              <label for="filterSelect" class="controls-label">Mostra</label>
-              <select id="filterSelect" class="controls-select">
-                <option value="all">Tutti</option>
-                <option value="todo">Da fare</option>
-                <option value="doing">In corso</option>
-                <option value="done">Completati</option>
-              </select>
-            </div>
-            <div class="controls-group">
-              <label for="sortSelect" class="controls-label">Ordina</label>
-              <select id="sortSelect" class="controls-select">
-                <option value="none">—</option>
-                <option value="date">Per data</option>
-                <option value="status">Per stato</option>
-              </select>
-            </div>
-          </div>
-
-          <!--
-            Layout Switcher: cambia solo la visualizzazione,
-            non i dati. Il bottone attivo ha classe .active.
-            JS aggiorna questa classe al click.
-          -->
-          <div class="layout-switcher">
-            <button id="btnList" class="btn-layout active" title="Vista Lista">
-              ☰ Lista
-            </button>
-            <button id="btnKanban" class="btn-layout" title="Vista Kanban">
-              ⊞ Kanban
-            </button>
-          </div>
-        </div>
-
-        <!--
-          ===== CONTENITORE PRINCIPALE DI RENDERING =====
-          render() svuota questo div (innerHTML = '')
-          e lo ricrea da zero, sia in lista che in kanban.
-          L'HTML interno non va mai scritto a mano.
-        -->
-        <div id="mainContainer"></div>
-
+    <!-- ── Sidebar / Header ── -->
+    <header class="topbar">
+      <div class="topbar-brand">
+        <span class="brand-icon">◈</span>
+        <span class="brand-name">TaskFlow</span>
       </div>
-    </div>
 
-    <!--
-      Script in fondo al body: il DOM è già costruito quando
-      il JS viene eseguito → nessun bisogno di defer.
-      La guardia accesso (getCookie) e tutto il resto
-      sono dentro DOMContentLoaded in script.js.
-    -->
-    <script src="js/script.js"></script>
-  </body>
+      <nav class="topbar-nav">
+        <a href="index.html" class="nav-link active">Task</a>
+        <a href="dashboard.html" class="nav-link">Dashboard</a>
+      </nav>
+
+      <div class="topbar-right">
+        <div class="session-timer" id="session-timer">⏱ --:--</div>
+        <div class="user-badge" id="user-badge">···</div>
+        <button class="btn-logout" id="logout-btn">Esci →</button>
+      </div>
+    </header>
+
+    <!-- ── Contenuto principale ── -->
+    <main class="main">
+
+      <!-- Colonna sinistra: form di aggiunta ── -->
+      <section class="panel panel-add">
+        <h2 class="panel-title">Nuovo task</h2>
+
+        <div id="error-box" class="error-box hidden"></div>
+
+        <div class="field">
+          <label for="task-title">Titolo</label>
+          <input type="text" id="task-title" placeholder="Cosa devi fare?" maxlength="80" />
+        </div>
+
+        <div class="field">
+          <label for="task-due">Scadenza</label>
+          <input type="date" id="task-due" />
+        </div>
+
+        <div class="field">
+          <label for="task-status">Stato iniziale</label>
+          <select id="task-status">
+            <option value="todo">Da fare</option>
+            <option value="doing">In corso</option>
+            <option value="done">Completato</option>
+          </select>
+        </div>
+
+        <button class="btn-add" id="add-btn">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          Aggiungi task
+        </button>
+
+        <!-- ── Contatore ── -->
+        <div class="task-counter">
+          <span id="count-total">0</span> task totali
+          <span class="counter-dots">·</span>
+          <span id="count-done" class="done-count">0</span> completati
+        </div>
+      </section>
+
+      <!-- Colonna destra: lista task ── -->
+      <section class="panel panel-list">
+
+        <!-- Toolbar: filtri + ordinamento + vista ── -->
+        <div class="toolbar">
+          <div class="toolbar-left">
+            <button class="filter-btn active" data-filter="all">Tutti</button>
+            <button class="filter-btn" data-filter="todo">Da fare</button>
+            <button class="filter-btn" data-filter="doing">In corso</button>
+            <button class="filter-btn" data-filter="done">Completati</button>
+          </div>
+          <div class="toolbar-right">
+            <select id="sort-select" class="sort-select">
+              <option value="newest">Più recenti</option>
+              <option value="oldest">Più vecchi</option>
+              <option value="due">Per scadenza</option>
+              <option value="status">Per stato</option>
+            </select>
+            <div class="view-toggle">
+              <button class="view-btn active" id="view-list" title="Vista lista">
+                <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+              </button>
+              <button class="view-btn" id="view-kanban" title="Vista kanban">
+                <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="18" rx="1"/><rect x="14" y="3" width="7" height="12" rx="1"/></svg>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Contenitore task (lista o kanban) ── -->
+        <div id="task-container"></div>
+
+        <!-- Stato vuoto ── -->
+        <div id="empty-state" class="empty-state hidden">
+          <span class="empty-icon">○</span>
+          <p>Nessun task qui.<br>Aggiungine uno!</p>
+        </div>
+
+      </section>
+    </main>
+  </div>
+
+  <script src="js/index.js"></script>
+</body>
 </html>
